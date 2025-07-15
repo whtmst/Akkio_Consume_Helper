@@ -1,0 +1,9 @@
+## Interface: 11200
+## author: Akkio
+## Title: Akkio_Consume_Helper
+## Notes: Helper for managing consumables
+## Version: 1.0
+## SavedVariablesPerCharacter: Akkio_Consume_Helper_Settings
+
+Akkio_Consume_HelperTable.lua
+Akkio_Consume_Helper.xml
