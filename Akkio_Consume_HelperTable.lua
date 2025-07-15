@@ -83,7 +83,7 @@ local allBuffs = {
   { name = "Elixir of the Mongoose",     icon = "Interface\\Icons\\Inv_potion_32",              buffIcon = "Interface\\Icons\\INV_potion_32" },
   { name = "Greater Arcane Elixir",      icon = "Interface\\Icons\\Inv_Potion_25",              buffIcon = "Interface\\Icons\\INV_Potion_25" },
   { name = "Elixir of Fortitude",        icon = "Interface\\Icons\\Inv_potion_43",              buffIcon = "Interface\\Icons\\INV_Potion_44" },
-  { name = "Elixir of Giants",       icon = "Interface\\Icons\\Inv_Potion_61",              buffIcon = "Interface\\Icons\\INV_Potion_61" },
+  { name = "Elixir of Giants",           icon = "Interface\\Icons\\Inv_Potion_61",              buffIcon = "Interface\\Icons\\INV_Potion_61" },
   { name = "Elixir of Superior Defense", icon = "Interface\\Icons\\Inv_Potion_66",              buffIcon = "Interface\\Icons\\INV_Potion_86" },
   { name = "Juju Might",                 icon = "Interface\\Icons\\inv_misc_monsterscales_07",  buffIcon = "Interface\\Icons\\INV_misc_monsterscales_07" },
   { name = "Juju Power",                 icon = "Interface\\Icons\\inv_misc_monsterscales_11",  buffIcon = "Interface\\Icons\\INV_misc_monsterscales_11" },
@@ -279,13 +279,13 @@ local function BuildBuffStatusUI()
 
     local bg = buffStatusFrame:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
-    bg:SetTexture(0, 0, 0, 0.1)
+    bg:SetTexture(0, 0, 0, 0.0)
 
     -- remove title in producton
     local title = buffStatusFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     title:SetPoint("TOP", 0, -10)
     title:SetText("Buff Status")
-
+    title:Hide() -- Hide the title in production
     buffStatusFrame.children = {} -- Create a table to track children
   else
     -- Clean up old children
