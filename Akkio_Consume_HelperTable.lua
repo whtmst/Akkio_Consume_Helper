@@ -98,14 +98,18 @@ local allBuffs = {
 local buffSelectFrame = nil
 
 local function BuildBuffSelectionUI()
+
+  local tempTable = {}
+
   if enabledBuffs then
     wipeTable(enabledBuffs)
   end
 
-  local tempTable = {}
-
-  for buffName, texture in pairs(Akkio_Consume_Helper_Settings.enabledBuffs) do
-    tempTable[buffName] = texture
+  for buffName, data in pairs(Akkio_Consume_Helper_Settings.enabledBuffs) do
+    tempTable[buffName] = {
+      texture = data.texture,
+      searchableIconTexture = data.searchableIcon
+    }
   end
 
   local max_width = 500
@@ -179,12 +183,15 @@ local function BuildBuffSelectionUI()
 
       cb:SetScript("OnClick", function()
         local buffName = label:GetText()
-        local texture = tempIcon:GetTexture()
-        local testIcon = icon:GetTexture()
-        DEFAULT_CHAT_FRAME:AddMessage("Checkbox clicked for buff: " .. buffName)
-        DEFAULT_CHAT_FRAME:AddMessage("Texture: " .. texture)
+        local texture = icon:GetTexture()
+        local searchableIconTexture = tempIcon:GetTexture()
+        -- DEFAULT_CHAT_FRAME:AddMessage("Checkbox clicked for buff: " .. buffName)
+        -- DEFAULT_CHAT_FRAME:AddMessage("Texture: " .. texture)
         if this:GetChecked() == 1 then
-          tempTable[buffName] = texture
+          tempTable[buffName] = {
+            texture = texture,
+            searchableIconTexture = searchableIconTexture
+          }
         else
           tempTable[buffName] = nil
         end
@@ -200,12 +207,16 @@ local function BuildBuffSelectionUI()
   closeButton:SetPoint("BOTTOMRIGHT", buffSelectFrame, "BOTTOMRIGHT", -30, 10)
   closeButton:SetText("Save and Close")
   closeButton:SetScript("OnClick", function()
+    
     wipeTable(Akkio_Consume_Helper_Settings.enabledBuffs)
 
-    for name, texture in pairs(tempTable) do
-      DEFAULT_CHAT_FRAME:AddMessage("Saving buff: " .. name)
-      DEFAULT_CHAT_FRAME:AddMessage("Texture: " .. texture)
-      Akkio_Consume_Helper_Settings.enabledBuffs[name] = texture
+    for name, data in pairs(tempTable) do
+      -- DEFAULT_CHAT_FRAME:AddMessage("Saving buff: " .. name)
+      -- DEFAULT_CHAT_FRAME:AddMessage("Texture: " .. texture)
+      Akkio_Consume_Helper_Settings.enabledBuffs[name] = {
+        texture = data.texture,
+        searchableIcon = data.searchableIconTexture
+      }
     end
 
     DEFAULT_CHAT_FRAME:AddMessage("Akkio Consume Helper: Buff selections saved.")
@@ -220,8 +231,8 @@ end
 local function CheckActiveBuffs()
   wipeTable(enabledBuffs)
 
-  for buffName, texture in pairs(Akkio_Consume_Helper_Settings.enabledBuffs) do
-    enabledBuffs[buffName] = texture
+  for buffName, data in pairs(Akkio_Consume_Helper_Settings.enabledBuffs) do
+    enabledBuffs[buffName] = data
   end
 
   local activeBuffIcons = {}
@@ -233,9 +244,9 @@ local function CheckActiveBuffs()
     DEFAULT_CHAT_FRAME:AddMessage("Active buff: " .. name)
   end
 
-  for buffName, texture in pairs(enabledBuffs) do
+  for buffName, data in pairs(enabledBuffs) do
     DEFAULT_CHAT_FRAME:AddMessage("Checking buff: " .. buffName)
-    if not activeBuffIcons[texture] then
+    if not activeBuffIcons[data.searchableIconTexture] then
       DEFAULT_CHAT_FRAME:AddMessage("Missing buff: " .. buffName)
     else
       DEFAULT_CHAT_FRAME:AddMessage("Active buff: " .. buffName)
@@ -248,8 +259,11 @@ local buffStatusFrame
 local function BuildBuffStatusUI()
   wipeTable(enabledBuffs)
 
-  for buffName, texture in pairs(Akkio_Consume_Helper_Settings.enabledBuffs) do
-    enabledBuffs[buffName] = texture
+  for buffName, data in pairs(Akkio_Consume_Helper_Settings.enabledBuffs) do
+    enabledBuffs[buffName] = {
+      texture = data.texture,
+      searchableIconTexture = data.searchableIcon
+    }
   end
 
   if not buffStatusFrame then
@@ -289,12 +303,12 @@ local function BuildBuffStatusUI()
 
   local xOffset = 30
   local yOffset = -30
-  for name, texture in pairs(enabledBuffs) do
+  for name, data in pairs(enabledBuffs) do
     local hasBuff = false
     for i = 1, 40 do
       local buffName = UnitBuff("player", i)
       if not buffName then break end
-      if buffName == texture then
+      if buffName == data.searchableIconTexture then
         hasBuff = true
         break
       end
@@ -307,12 +321,13 @@ local function BuildBuffStatusUI()
 
     local iconTexture = icon:CreateTexture(nil, "ARTWORK")
     iconTexture:SetAllPoints()
-    iconTexture:SetTexture(texture)
+    iconTexture:SetTexture(data.texture)
     if hasBuff then
       iconTexture:SetVertexColor(1, 1, 1, 1)
     else
       iconTexture:SetVertexColor(1, 0, 0, 1)
     end
+
     icon:SetNormalTexture(iconTexture)
     icon:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 
@@ -336,7 +351,7 @@ local function BuildBuffStatusUI()
     icon:SetScript("OnClick", function()
       local buffName = label:GetText()
       if hasBuff then
-        DEFAULT_CHAT_FRAME:AddMessage("You already have " .. buffName .. " buff active.")
+        --DEFAULT_CHAT_FRAME:AddMessage("You already have " .. buffName .. " buff active.")
       else
         if GetNumRaidMembers() > 0 then
           for i = 1, GetNumRaidMembers() do
