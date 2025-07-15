@@ -1,0 +1,2 @@
+--settings file for Akkio Consume Helper
+-- This file contains the settings for enabled buffs and their icons
