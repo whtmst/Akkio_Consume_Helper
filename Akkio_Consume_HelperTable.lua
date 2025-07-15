@@ -83,7 +83,7 @@ local allBuffs = {
   { name = "Elixir of the Mongoose",     icon = "Interface\\Icons\\Inv_potion_32",              buffIcon = "Interface\\Icons\\INV_potion_32" },
   { name = "Greater Arcane Elixir",      icon = "Interface\\Icons\\Inv_Potion_25",              buffIcon = "Interface\\Icons\\INV_Potion_25" },
   { name = "Elixir of Fortitude",        icon = "Interface\\Icons\\Inv_potion_43",              buffIcon = "Interface\\Icons\\INV_Potion_44" },
-  { name = "Elixir of the Giants",       icon = "Interface\\Icons\\Inv_Potion_61",              buffIcon = "Interface\\Icons\\INV_Potion_61" },
+  { name = "Elixir of Giants",       icon = "Interface\\Icons\\Inv_Potion_61",              buffIcon = "Interface\\Icons\\INV_Potion_61" },
   { name = "Elixir of Superior Defense", icon = "Interface\\Icons\\Inv_Potion_66",              buffIcon = "Interface\\Icons\\INV_Potion_86" },
   { name = "Juju Might",                 icon = "Interface\\Icons\\inv_misc_monsterscales_07",  buffIcon = "Interface\\Icons\\INV_misc_monsterscales_07" },
   { name = "Juju Power",                 icon = "Interface\\Icons\\inv_misc_monsterscales_11",  buffIcon = "Interface\\Icons\\INV_misc_monsterscales_11" },
