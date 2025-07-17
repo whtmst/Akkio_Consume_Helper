@@ -1482,6 +1482,31 @@ SlashCmdList["AKKIORESET"] = function()
   resetConfirmFrame:Show()
 end
 
+SLASH_AKKIODEBUG1 = "/actdebug"
+SlashCmdList["AKKIODEBUG"] = function()
+  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00=== Akkio Consume Helper Debug ===|r")
+  DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Active player buffs:|r")
+  
+  local buffCount = 0
+  for i = 1, 40 do
+    local name, _, icon = UnitBuff("player", i)
+    if name then
+      buffCount = buffCount + 1
+      DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00[" .. i .. "]|r " .. name .. " |cff888888(Icon: " .. (icon or "nil") .. ")|r")
+    else
+      break
+    end
+  end
+  
+  if buffCount == 0 then
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo active buffs found|r")
+  else
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Total buffs found: " .. buffCount .. "|r")
+  end
+  
+  DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Please share this output when reporting buff detection issues.|r")
+end
+
 -- ============================================================================
 -- INITIALIZATION
 -- ============================================================================
