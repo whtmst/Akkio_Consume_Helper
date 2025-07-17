@@ -47,14 +47,18 @@ Akkio_Consume_Helper_Data.allBuffs = {
   { name = "Dense Sharpening Stone",       icon = "Interface\\Icons\\INV_Stone_SharpeningStone_05", buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand" },
   { name = "Elemental Sharpening Stone",   icon = "Interface\\Icons\\INV_Stone_02",                 buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand" },
   { name = "Elemental Sharpening Stone",   icon = "Interface\\Icons\\INV_Stone_02",                 buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand" },
+  { name = "Brilliant Mana Oil",           icon = "Interface\\Icons\\INV_Potion_100",               buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand" },
+  { name = "Brilliant Wizard Oil",         icon = "Interface\\Icons\\INV_Potion_105",               buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand" },
+
+
   { name = "Blessed Weapon Coating",       icon = "Interface\\Icons\\INV_Potion_95",                buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand" },
   { name = "Blessed Weapon Coating",       icon = "Interface\\Icons\\INV_Potion_95",                buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand" },
   { name = "Shadowoil",                    icon = "Interface\\Icons\\INV_Potion_106",               buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand" },
   { name = "Shadowoil",                    icon = "Interface\\Icons\\INV_Potion_106",               buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand" },
-  { name = "Deadly Poison",                icon = "Interface\\Icons\\INV_Potion_108",               buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand" },
-  { name = "Deadly Poison",                icon = "Interface\\Icons\\INV_Potion_108",               buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand" },
-  { name = "Instant Poison",               icon = "Interface\\Icons\\INV_Potion_109",               buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand" },
-  { name = "Instant Poison",               icon = "Interface\\Icons\\INV_Potion_109",               buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand" },
+  { name = "Deadly Poison",                icon = "Interface\\Icons\\Ability_Rogue_Dualweild",      buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand" },
+  { name = "Deadly Poison",                icon = "Interface\\Icons\\Ability_Rogue_Dualweild",      buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand" },
+  { name = "Instant Poison",               icon = "Interface\\Icons\\Ability_Poisons",              buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand" },
+  { name = "Instant Poison",               icon = "Interface\\Icons\\Ability_Poisons",              buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand" },
 }
 
 -- You can add more data tables here if needed
