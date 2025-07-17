@@ -1,5 +1,28 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.0.2] - 2025-01-17
+
+### Fixed
+- **Charged Item Detection**: Fixed critical bug where charged items (oils, sharpening stones) were not properly detected in bags
+  - WoW Classic API returns negative values for charged items (e.g., -5 = 5 charges remaining)
+  - Implemented `math.abs()` conversion for both simple and cached bag scanning functions
+  - Brilliant Wizard Oil, Mana Oil, Dense Sharpening Stone, and other charged items now properly detected
+  - Enhanced debug output to show both raw and corrected count values for troubleshooting
+- **ShaguTweaks Compatibility**: Fixed scroll frame functionality when ShaguTweaks addon is enabled
+  - Replaced template-based scroll frame with custom implementation to avoid conflicts
+  - Added explicit mouse wheel event handling that bypasses ShaguTweaks global hooks
+  - Buff selection UI scrolling now works properly with ShaguTweaks installed
+- **Icon Corrections**: Fixed incorrect buff icons for several items
+  - Gift of Arthas: Corrected buff icon to properly show the actual buff effect
+  - Prayer of Spirit: Fixed raid buff icon path for proper detection
+  - Arcane Intellect: Corrected raid buff icon reference for improved recognition
+
+### Technical
+- **Charged Item API Handling**: Added proper handling for WoW Classic's negative count behavior for charged items
+- **Debug Command Improvements**: Reverted `/actdebug` to focus on buff scanning for better troubleshooting capabilities
+- **Scroll Frame Compatibility**: Custom scroll bar implementation resistant to addon conflicts
+- **Icon Database**: Updated buff icon references to match actual in-game buff icons
+
 ## [1.0.1] - 2025-01-17
 
 ### Added

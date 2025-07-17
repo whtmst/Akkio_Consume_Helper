@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.0.1"
+local ADDON_VERSION = "1.0.2"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -187,9 +187,26 @@ local function findItemInBagAndGetAmmount(itemName)
       if bagSlots and bagSlots > 0 then
         for slot = 1, bagSlots do
           local itemLink = GetContainerItemLink(bag, slot)
-          if itemLink and string.find(itemLink, itemName) then
-            local _, itemCount = GetContainerItemInfo(bag, slot)
-            totalAmmount = totalAmmount + itemCount
+          if itemLink then
+            -- Extract item name from link, handling items with charges
+            local _, _, linkItemName = string.find(itemLink, "%[(.-)%]")
+            -- Remove charge information if present (e.g., "Brilliant Wizard Oil (5)" -> "Brilliant Wizard Oil")
+            if linkItemName then
+              linkItemName = string.gsub(linkItemName, " %(%d+%)$", "")
+              if linkItemName == itemName then
+                local _, itemCount = GetContainerItemInfo(bag, slot)
+                -- Handle charged items (negative count) vs stacked items (positive count)
+                if itemCount then
+                  if itemCount < 0 then
+                    -- Charged item: count represents charges remaining, convert to positive
+                    totalAmmount = totalAmmount + math.abs(itemCount)
+                  else
+                    -- Regular stacked item: count represents stack size
+                    totalAmmount = totalAmmount + itemCount
+                  end
+                end
+              end
+            end
           end
         end
       end
@@ -214,10 +231,20 @@ local function findItemInBagAndGetAmmount(itemName)
           local itemLink = GetContainerItemLink(bag, slot)
           if itemLink then
             local _, itemCount = GetContainerItemInfo(bag, slot)
-            -- Extract item name from link
-            local _, _, itemName = string.find(itemLink, "%[(.+)%]")
-            if itemName and itemCount then
-              buffStatusFrame.bagCache[itemName] = (buffStatusFrame.bagCache[itemName] or 0) + itemCount
+            -- Extract item name from link, handling items with charges
+            local _, _, linkItemName = string.find(itemLink, "%[(.-)%]")
+            if linkItemName then
+              -- Remove charge information if present (e.g., "Brilliant Wizard Oil (5)" -> "Brilliant Wizard Oil")
+              linkItemName = string.gsub(linkItemName, " %(%d+%)$", "")
+              if linkItemName and itemCount then
+                -- Handle charged items (negative count) vs stacked items (positive count)
+                local actualCount = itemCount
+                if itemCount < 0 then
+                  -- Charged item: count represents charges remaining, convert to positive
+                  actualCount = math.abs(itemCount)
+                end
+                buffStatusFrame.bagCache[linkItemName] = (buffStatusFrame.bagCache[linkItemName] or 0) + actualCount
+              end
             end
           end
         end
@@ -316,9 +343,17 @@ local function findAndUseItemByName(itemName)
   for bag = 0, 4 do -- 0 = backpack, 1–4 = bags
     for slot = 1, GetContainerNumSlots(bag) do
       local itemLink = GetContainerItemLink(bag, slot)
-      if itemLink and string.find(itemLink, itemName) then
-        UseContainerItem(bag, slot)
-        return true -- stop once found and used
+      if itemLink then
+        -- Extract item name from link, handling items with charges
+        local _, _, linkItemName = string.find(itemLink, "%[(.-)%]")
+        if linkItemName then
+          -- Remove charge information if present (e.g., "Brilliant Wizard Oil (5)" -> "Brilliant Wizard Oil")
+          linkItemName = string.gsub(linkItemName, " %(%d+%)$", "")
+          if linkItemName == itemName then
+            UseContainerItem(bag, slot)
+            return true -- stop once found and used
+          end
+        end
       end
     end
   end
@@ -331,26 +366,34 @@ local function applyWeaponEnchant(itemName, slot)
   for bag = 0, 4 do -- 0 = backpack, 1–4 = bags
     for bagSlot = 1, GetContainerNumSlots(bag) do
       local itemLink = GetContainerItemLink(bag, bagSlot)
-      if itemLink and string.find(itemLink, itemName) then
-        -- Use the item to put it on cursor
-        UseContainerItem(bag, bagSlot)
-        
-        -- Provide clear instructions to the player
-        if slot == "mainhand" then
-          if GetInventoryItemTexture("player", 16) then
-            DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00" .. itemName .. " ready!|r |cffFFFF00Click on your MAIN HAND weapon to apply.|r")
-          else
-            DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo weapon equipped in main hand slot.|r")
-          end
-        elseif slot == "offhand" then
-          if GetInventoryItemTexture("player", 17) then
-            DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00" .. itemName .. " ready!|r |cffFFFF00Click on your OFF HAND weapon to apply.|r")
-          else
-            DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo weapon equipped in off hand slot.|r")
+      if itemLink then
+        -- Extract item name from link, handling items with charges
+        local _, _, linkItemName = string.find(itemLink, "%[(.-)%]")
+        if linkItemName then
+          -- Remove charge information if present (e.g., "Brilliant Wizard Oil (5)" -> "Brilliant Wizard Oil")
+          linkItemName = string.gsub(linkItemName, " %(%d+%)$", "")
+          if linkItemName == itemName then
+            -- Use the item to put it on cursor
+            UseContainerItem(bag, bagSlot)
+            
+            -- Provide clear instructions to the player
+            if slot == "mainhand" then
+              if GetInventoryItemTexture("player", 16) then
+                DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00" .. itemName .. " ready!|r |cffFFFF00Click on your MAIN HAND weapon to apply.|r")
+              else
+                DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo weapon equipped in main hand slot.|r")
+              end
+            elseif slot == "offhand" then
+              if GetInventoryItemTexture("player", 17) then
+                DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00" .. itemName .. " ready!|r |cffFFFF00Click on your OFF HAND weapon to apply.|r")
+              else
+                DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo weapon equipped in off hand slot.|r")
+              end
+            end
+            
+            return true
           end
         end
-        
-        return true
       end
     end
   end
@@ -873,12 +916,41 @@ BuildBuffSelectionUI = function()
   buffSelectFrame:SetBackdropColor(0.05, 0.1, 0.15, 0.95) -- Set background color to dark blue-black with high opacity
   buffSelectFrame:SetBackdropBorderColor(0.7, 0.8, 1, 1) -- Set border color to light blue
 
-  -- ScrollFrame
-  buffSelectFrame.scrollframe = CreateFrame("ScrollFrame", "AdvancedSettingsGUIScrollframe", buffSelectFrame,
-    "UIPanelScrollFrameTemplate")
+  -- ScrollFrame with ShaguTweaks compatibility
+  buffSelectFrame.scrollframe = CreateFrame("ScrollFrame", "AkkioBuffScrollFrame", buffSelectFrame)
   buffSelectFrame.scrollframe:SetWidth(max_width - 50)
   buffSelectFrame.scrollframe:SetHeight(max_height - 60)
   buffSelectFrame.scrollframe:SetPoint("TOP", buffSelectFrame, "TOP", 0, -40)
+  
+  -- Create scroll bar manually for better compatibility
+  buffSelectFrame.scrollbar = CreateFrame("Slider", "AkkioBuffScrollBar", buffSelectFrame.scrollframe, "UIPanelScrollBarTemplate")
+  buffSelectFrame.scrollbar:SetPoint("TOPLEFT", buffSelectFrame.scrollframe, "TOPRIGHT", 4, -16)
+  buffSelectFrame.scrollbar:SetPoint("BOTTOMLEFT", buffSelectFrame.scrollframe, "BOTTOMRIGHT", 4, 16)
+  buffSelectFrame.scrollbar:SetMinMaxValues(1, 1)
+  buffSelectFrame.scrollbar:SetValueStep(1)
+  buffSelectFrame.scrollbar.scrollStep = 1
+  buffSelectFrame.scrollbar:SetValue(0)
+  buffSelectFrame.scrollbar:SetWidth(16)
+  buffSelectFrame.scrollbar:SetScript("OnValueChanged", function()
+    buffSelectFrame.scrollframe:SetVerticalScroll(this:GetValue())
+  end)
+  
+  -- Enable mouse wheel scrolling with explicit event handling
+  buffSelectFrame.scrollframe:EnableMouseWheel(true)
+  buffSelectFrame.scrollframe:SetScript("OnMouseWheel", function()
+    local scrollbar = buffSelectFrame.scrollbar
+    local step = scrollbar.scrollStep or 20
+    local value = scrollbar:GetValue()
+    local minVal, maxVal = scrollbar:GetMinMaxValues()
+    
+    if arg1 > 0 then
+      value = math.max(minVal, value - step)
+    else
+      value = math.min(maxVal, value + step)
+    end
+    
+    scrollbar:SetValue(value)
+  end)
 
   -- Content frame inside scroll frame
   buffSelectFrame.content = CreateFrame("Frame", nil, buffSelectFrame.scrollframe)
@@ -990,6 +1062,12 @@ BuildBuffSelectionUI = function()
 
   local totalHeight = currentYOffset + 20
   content:SetHeight(totalHeight)
+  
+  -- Update scroll range for our custom scroll bar
+  local scrollFrameHeight = buffSelectFrame.scrollframe:GetHeight()
+  local maxScroll = math.max(0, totalHeight - scrollFrameHeight)
+  buffSelectFrame.scrollbar:SetMinMaxValues(0, maxScroll)
+  buffSelectFrame.scrollbar.scrollStep = math.max(1, maxScroll / 10) -- 10% steps
 end
 
 BuildBuffStatusUI = function()
@@ -1484,27 +1562,33 @@ end
 
 SLASH_AKKIODEBUG1 = "/actdebug"
 SlashCmdList["AKKIODEBUG"] = function()
-  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00=== Akkio Consume Helper Debug ===|r")
-  DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Active player buffs:|r")
+  DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6=== BUFF DEBUG SCAN ===|r")
+  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFCurrently active buffs on player:|r")
   
   local buffCount = 0
   for i = 1, 40 do
-    local name, _, icon = UnitBuff("player", i)
-    if name then
+    local buffTexture = UnitBuff("player", i)
+    if buffTexture then
       buffCount = buffCount + 1
-      DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00[" .. i .. "]|r " .. name .. " |cff888888(Icon: " .. (icon or "nil") .. ")|r")
+      DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Buff " .. i .. ":|r " .. buffTexture)
     else
       break
     end
   end
   
   if buffCount == 0 then
-    DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo active buffs found|r")
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo buffs currently active.|r")
   else
-    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Total buffs found: " .. buffCount .. "|r")
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFTotal active buffs: " .. buffCount .. "|r")
   end
   
-  DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Please share this output when reporting buff detection issues.|r")
+  -- Check weapon enchants
+  local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _ = GetWeaponEnchantInfo()
+  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFF=== WEAPON ENCHANTS ===|r")
+  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFMain Hand:|r " .. (hasMainHandEnchant and "|cff00FF00Enchanted|r" or "|cffFF6B6BNot Enchanted|r"))
+  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFOff Hand:|r " .. (hasOffHandEnchant and "|cff00FF00Enchanted|r" or "|cffFF6B6BNot Enchanted|r"))
+  
+  DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6=== END DEBUG SCAN ===|r")
 end
 
 -- ============================================================================
