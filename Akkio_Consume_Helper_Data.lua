@@ -33,6 +33,7 @@ Akkio_Consume_Helper_Data.allBuffs = {
   { name = "Greater Arcane Elixir",      icon = "Interface\\Icons\\Inv_Potion_25",              buffIcon = "Interface\\Icons\\INV_Potion_25",                                                                                            canBeAnounced = false },
   { name = "Juju Might",                 icon = "Interface\\Icons\\INV_Misc_MonsterScales_07",  buffIcon = "Interface\\Icons\\INV_Misc_MonsterScales_07",                                                                                canBeAnounced = false },
   { name = "Juju Power",                 icon = "Interface\\Icons\\INV_Misc_MonsterScales_11",  buffIcon = "Interface\\Icons\\INV_Misc_MonsterScales_11",                                                                                canBeAnounced = false },
+  { name = "Winterfall Firewater",       icon = "Interface\\Icons\\INV_Potion_92",              buffIcon = "Interface\\Icons\\INV_Potion_92",                                                                                            canBeAnounced = false },
   { name = "Spirit of Zanza",            icon = "Interface\\Icons\\INV_Potion_30",              buffIcon = "Interface\\Icons\\INV_Potion_30",                                                                                            canBeAnounced = false },
 
   { header = true,                       name = "Food & Drinks" },

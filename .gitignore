@@ -17,3 +17,6 @@ Thumbs.db
 
 # Windows shortcuts
 *.lnk
+
+# Development files (internal use only)
+DEV_TRACKER.md

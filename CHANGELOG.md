@@ -1,5 +1,24 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.0.1] - 2025-01-17
+
+### Added
+- **Hover-to-Show Feature**: New QoL option to show buff status frame only when hovering over individual buff icons
+  - Frame becomes completely transparent when not hovering
+  - Prevents automatic UI rebuilds during non-hover states to maintain proper visibility control
+  - Configurable setting in UI options panel
+
+### Fixed
+- **Conditional Rebuild System**: Automatic UI rebuilds now respect hover-to-show settings
+  - Fixed issue where frame would unexpectedly become visible during automatic updates
+  - Implemented intelligent rebuild prevention when hover-to-show is enabled and no icons are being hovered
+- **Settings Application**: Improved immediate response when applying hover-to-show settings
+  - Frame now properly hides immediately after enabling the feature via Apply button
+
+### Technical
+- **Ticker Optimization**: Enhanced both main and combat handler tickers with conditional rebuild logic
+- **Alpha State Management**: Improved frame transparency handling during UI rebuilds
+
 ## [1.0.0] - 2025-01-17
 
 ### Added

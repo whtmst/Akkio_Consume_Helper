@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.0.0"
+local ADDON_VERSION = "1.0.1"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -37,7 +37,8 @@ local function ResetToDefaults()
       pauseUpdatesInCombat = true,
       hideFrameInCombat = false,
       minimapAngle = 225,
-      showTooltips = true
+      showTooltips = true,
+      hoverToShow = false
     }
   }
   
@@ -112,7 +113,8 @@ if not Akkio_Consume_Helper_Settings.settings then
     pauseUpdatesInCombat = true,
     hideFrameInCombat = false,
     minimapAngle = 225,
-    showTooltips = true
+    showTooltips = true,
+    hoverToShow = false
   }
 end
 
@@ -140,6 +142,9 @@ if not Akkio_Consume_Helper_Settings.settings.minimapAngle then
 end
 if Akkio_Consume_Helper_Settings.settings.showTooltips == nil then
   Akkio_Consume_Helper_Settings.settings.showTooltips = true
+end
+if Akkio_Consume_Helper_Settings.settings.hoverToShow == nil then
+  Akkio_Consume_Helper_Settings.settings.hoverToShow = false
 end
 -- ============================================================================
 -- GLOBAL VARIABLES
@@ -302,6 +307,7 @@ local function ForceRefreshBuffStatus()
     if buffStatusFrame.ticker then
       buffStatusFrame.ticker.lastFullUpdate = GetTime() - 11 -- Force next update to rebuild
     end
+    
     BuildBuffStatusUI()
   end
 end
@@ -559,6 +565,17 @@ BuildSettingsUI = function()
   showTooltipsLabel:SetPoint("LEFT", showTooltipsCheckbox, "RIGHT", 5, 0)
   showTooltipsLabel:SetText("Show detailed tooltips on buff icons")
 
+  -- Hover to Show Checkbox
+  local hoverToShowCheckbox = CreateFrame("CheckButton", "AkkioHoverToShowCheckbox", settingsFrame, "UICheckButtonTemplate")
+  hoverToShowCheckbox:SetWidth(20)
+  hoverToShowCheckbox:SetHeight(20)
+  hoverToShowCheckbox:SetPoint("TOPLEFT", showTooltipsCheckbox, "BOTTOMLEFT", 0, -10)
+  hoverToShowCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.hoverToShow)
+
+  local hoverToShowLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  hoverToShowLabel:SetPoint("LEFT", hoverToShowCheckbox, "RIGHT", 5, 0)
+  hoverToShowLabel:SetText("Show frame only when hovering buff icons")
+
   -- Apply Button
   local applyButton = CreateFrame("Button", nil, settingsFrame, "UIPanelButtonTemplate")
   applyButton:SetWidth(80)
@@ -573,6 +590,7 @@ BuildSettingsUI = function()
     local pauseUpdatesValue = pauseUpdatesCheckbox:GetChecked() == 1
     local hideFrameValue = hideFrameCheckbox:GetChecked() == 1
     local showTooltipsValue = showTooltipsCheckbox:GetChecked() == 1
+    local hoverToShowValue = hoverToShowCheckbox:GetChecked() == 1
     
     -- Validate timer value
     if timerValue < 1 or timerValue > 60 then
@@ -596,11 +614,22 @@ BuildSettingsUI = function()
     Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat = pauseUpdatesValue
     Akkio_Consume_Helper_Settings.settings.hideFrameInCombat = hideFrameValue
     Akkio_Consume_Helper_Settings.settings.showTooltips = showTooltipsValue
+    Akkio_Consume_Helper_Settings.settings.hoverToShow = hoverToShowValue
     
     if buffStatusFrame then
       buffStatusFrame:SetScale(scaleValue)
-      -- Force refresh to apply new settings efficiently
-      ForceRefreshBuffStatus()
+      -- Apply hover-to-show setting immediately
+      if hoverToShowValue then
+        buffStatusFrame.hoverCount = 0 -- Reset hover count FIRST
+        -- Force immediate hide by rebuilding the UI which will respect the new setting
+        BuildBuffStatusUI()
+        -- THEN set alpha to ensure it's hidden after the rebuild
+        buffStatusFrame:SetAlpha(0.0) -- Make it completely transparent
+      else
+        buffStatusFrame:SetAlpha(1.0) -- Make it fully visible
+        -- Force refresh to apply new settings efficiently
+        ForceRefreshBuffStatus()
+      end
     end
     
     DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio Consume Helper:|r Settings applied successfully!")
@@ -622,6 +651,7 @@ BuildSettingsUI = function()
     pauseUpdatesCheckbox:SetChecked(true)
     hideFrameCheckbox:SetChecked(false)
     showTooltipsCheckbox:SetChecked(true)
+    hoverToShowCheckbox:SetChecked(false)
     
     -- Reset saved settings to defaults
     Akkio_Consume_Helper_Settings.settings.scale = 1.0
@@ -630,6 +660,7 @@ BuildSettingsUI = function()
     Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat = true
     Akkio_Consume_Helper_Settings.settings.hideFrameInCombat = false
     Akkio_Consume_Helper_Settings.settings.showTooltips = true
+    Akkio_Consume_Helper_Settings.settings.hoverToShow = false
     
     -- Update global variable
     updateTimer = 1
@@ -637,6 +668,7 @@ BuildSettingsUI = function()
     -- Apply default scale and rebuild UI
     if buffStatusFrame then
       buffStatusFrame:SetScale(1.0)
+      buffStatusFrame:SetAlpha(1.0) -- Make sure it's fully visible
       ForceRefreshBuffStatus()
     end
     
@@ -1008,6 +1040,14 @@ BuildBuffStatusUI = function()
     buffStatusFrame:SetScript("OnDragStart", function() buffStatusFrame:StartMoving() end)
     buffStatusFrame:SetScript("OnDragStop", function() buffStatusFrame:StopMovingOrSizing() end)
 
+    -- Set initial alpha based on hover-to-show setting
+    if Akkio_Consume_Helper_Settings.settings.hoverToShow then
+      buffStatusFrame:SetAlpha(0.0) -- Start completely transparent
+      buffStatusFrame.hoverCount = 0 -- Track how many icons are being hovered
+    else
+      buffStatusFrame:SetAlpha(1.0) -- Start fully visible
+    end
+
     local bg = buffStatusFrame:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
     bg:SetTexture(0, 0, 0, 0.0)
@@ -1028,6 +1068,24 @@ BuildBuffStatusUI = function()
         end
       end
       wipeTable(buffStatusFrame.children)
+    end
+    
+    -- Preserve alpha state during rebuild for hover-to-show
+    if Akkio_Consume_Helper_Settings.settings.hoverToShow then
+      -- Initialize hover tracking if it doesn't exist
+      if buffStatusFrame.hoverCount == nil then
+        buffStatusFrame.hoverCount = 0
+      end
+      
+      -- Keep frame hidden unless being hovered
+      if buffStatusFrame.hoverCount > 0 then
+        buffStatusFrame:SetAlpha(1.0) -- Keep visible while hovering
+      else
+        buffStatusFrame:SetAlpha(0.0) -- Stay hidden when not hovering
+      end
+    else
+      -- Normal mode - always visible
+      buffStatusFrame:SetAlpha(1.0)
     end
   end
 
@@ -1156,6 +1214,12 @@ BuildBuffStatusUI = function()
 
     -- Add tooltip functionality
     icon:SetScript("OnEnter", function()
+      -- Apply hover-to-show functionality first
+      if Akkio_Consume_Helper_Settings.settings.hoverToShow then
+        buffStatusFrame.hoverCount = (buffStatusFrame.hoverCount or 0) + 1
+        buffStatusFrame:SetAlpha(1.0) -- Make frame fully visible when hovering any icon
+      end
+      
       -- Check if tooltips are enabled
       if not Akkio_Consume_Helper_Settings.settings.showTooltips then
         return
@@ -1228,6 +1292,14 @@ BuildBuffStatusUI = function()
     end)
 
     icon:SetScript("OnLeave", function()
+      -- Apply hover-to-show functionality first
+      if Akkio_Consume_Helper_Settings.settings.hoverToShow then
+        buffStatusFrame.hoverCount = math.max(0, (buffStatusFrame.hoverCount or 1) - 1)
+        if buffStatusFrame.hoverCount <= 0 then
+          buffStatusFrame:SetAlpha(0.0) -- Make frame completely transparent when not hovering any icon
+        end
+      end
+      
       -- Only hide tooltip if tooltips are enabled (if they're disabled, tooltip won't be shown anyway)
       if Akkio_Consume_Helper_Settings.settings.showTooltips then
         GameTooltip:Hide()
@@ -1259,8 +1331,13 @@ BuildBuffStatusUI = function()
         this.lastUpdate = now
         
         -- Full UI rebuild only every 10 seconds or when settings change
+        -- BUT skip automatic rebuilds when hover-to-show is enabled to prevent unwanted visibility
         if (now - this.lastFullUpdate) > 10 then
-          BuildBuffStatusUI()
+          -- Only do automatic rebuilds if hover-to-show is disabled OR if someone is currently hovering
+          if not Akkio_Consume_Helper_Settings.settings.hoverToShow or 
+             (buffStatusFrame.hoverCount and buffStatusFrame.hoverCount > 0) then
+            BuildBuffStatusUI()
+          end
           this.lastFullUpdate = now
         end
       end
@@ -1416,6 +1493,7 @@ local function OnAddonLoaded()
   DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio's Consume Helper|r |cffFFFF00v" .. ADDON_VERSION .. "|r loaded successfully!")
   DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Type|r |cffFFFF00/act|r |cffADD8E6to configure buffs|r")
   if not buffStatusFrame then
+    -- No need to set rebuild flag here since frame doesn't exist yet
     BuildBuffStatusUI()
   end
   CreateMinimapButton()
@@ -1452,8 +1530,13 @@ local function OnLeavingCombat()
         this.lastUpdate = now
         
         -- Full UI rebuild only every 10 seconds or when settings change
+        -- BUT skip automatic rebuilds when hover-to-show is enabled to prevent unwanted visibility
         if (now - this.lastFullUpdate) > 10 then
-          BuildBuffStatusUI()
+          -- Only do automatic rebuilds if hover-to-show is disabled OR if someone is currently hovering
+          if not Akkio_Consume_Helper_Settings.settings.hoverToShow or 
+             (buffStatusFrame.hoverCount and buffStatusFrame.hoverCount > 0) then
+            BuildBuffStatusUI()
+          end
           this.lastFullUpdate = now
         end
       end
