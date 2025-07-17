@@ -6,5 +6,5 @@
 ## SavedVariablesPerCharacter: Akkio_Consume_Helper_Settings
 
 Akkio_Consume_Helper_Data.lua
+Akkio_Consume_Helper_Templates.xml
 Akkio_Consume_HelperTable.lua
-Akkio_Consume_Helper.xml

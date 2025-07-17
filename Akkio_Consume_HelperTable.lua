@@ -17,13 +17,42 @@ end
 if not Akkio_Consume_Helper_Settings.enabledBuffs then
   Akkio_Consume_Helper_Settings.enabledBuffs = {}
 end
+if not Akkio_Consume_Helper_Settings.settings then 
+  Akkio_Consume_Helper_Settings.settings = {
+    scale = 1.0,
+    updateTimer = 1,
+    iconsPerRow = 5,
+    inCombat = false,
+    pauseUpdatesInCombat = true,
+    hideFrameInCombat = false
+  }
+end
 
+-- Ensure all settings have default values
+if not Akkio_Consume_Helper_Settings.settings.scale then
+  Akkio_Consume_Helper_Settings.settings.scale = 1.0
+end
+if not Akkio_Consume_Helper_Settings.settings.updateTimer then
+  Akkio_Consume_Helper_Settings.settings.updateTimer = 1
+end
+if not Akkio_Consume_Helper_Settings.settings.iconsPerRow then
+  Akkio_Consume_Helper_Settings.settings.iconsPerRow = 5
+end
+if Akkio_Consume_Helper_Settings.settings.inCombat == nil then
+  Akkio_Consume_Helper_Settings.settings.inCombat = false
+end
+if Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat == nil then
+  Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat = true
+end
+if Akkio_Consume_Helper_Settings.settings.hideFrameInCombat == nil then
+  Akkio_Consume_Helper_Settings.settings.hideFrameInCombat = false
+end
 -- ============================================================================
 -- GLOBAL VARIABLES
 -- ============================================================================
 
 local enabledBuffs = {}
-local updateTimer = 1
+local updateTimer = Akkio_Consume_Helper_Settings.settings.updateTimer
 local allBuffs = Akkio_Consume_Helper_Data.allBuffs
 
 -- Frame references
@@ -85,6 +114,53 @@ local function findAndUseItemByName(itemName)
   return false
 end
 
+local function checkWeaponEnchant(slot)
+  -- Check if a weapon enchant is present on the specified slot
+  -- Returns true if an enchant is detected, false otherwise
+  
+  if slot == "mainhand" then
+    local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _ = GetWeaponEnchantInfo()
+    return hasMainHandEnchant
+  elseif slot == "offhand" then
+    local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _ = GetWeaponEnchantInfo()
+    return hasOffHandEnchant
+  end
+  
+  return false
+end
+
+local function applyWeaponEnchant(itemName, slot)
+  -- Find the weapon enchant item in bags and put it on cursor for manual application
+  for bag = 0, 4 do -- 0 = backpack, 1–4 = bags
+    for bagSlot = 1, GetContainerNumSlots(bag) do
+      local itemLink = GetContainerItemLink(bag, bagSlot)
+      if itemLink and string.find(itemLink, itemName) then
+        -- Use the item to put it on cursor
+        UseContainerItem(bag, bagSlot)
+        
+        -- Provide clear instructions to the player
+        if slot == "mainhand" then
+          if GetInventoryItemTexture("player", 16) then
+            DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00" .. itemName .. " is ready! Click on your MAIN HAND weapon to apply.|r")
+          else
+            DEFAULT_CHAT_FRAME:AddMessage("|cffFF0000No weapon equipped in main hand slot.|r")
+          end
+        elseif slot == "offhand" then
+          if GetInventoryItemTexture("player", 17) then
+            DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00" .. itemName .. " is ready! Click on your OFF HAND weapon to apply.|r")
+          else
+            DEFAULT_CHAT_FRAME:AddMessage("|cffFF0000No weapon equipped in off hand slot.|r")
+          end
+        end
+        
+        return true
+      end
+    end
+  end
+  DEFAULT_CHAT_FRAME:AddMessage("Item '" .. itemName .. "' not found.")
+  return false
+end
+
 -- ============================================================================
 -- UI CREATION FUNCTIONS
 -- ============================================================================
@@ -95,26 +171,30 @@ BuildSettingsUI = function()
     return
   end
 
-  local max_width = 400
-  local max_height = 350
+  local max_width = 600
+  local max_height = 800
 
   settingsFrame = CreateFrame("Frame", "AkkioSettingsFrame", UIParent)
   settingsFrame:SetWidth(max_width)
   settingsFrame:SetHeight(max_height)
   settingsFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+  settingsFrame:SetFrameStrata("DIALOG")
+  settingsFrame:SetFrameLevel(50)
   settingsFrame:SetMovable(true)
   settingsFrame:EnableMouse(true)
   settingsFrame:RegisterForDrag("LeftButton")
   settingsFrame:SetScript("OnDragStart", function() settingsFrame:StartMoving() end)
   settingsFrame:SetScript("OnDragStop", function() settingsFrame:StopMovingOrSizing() end)
   settingsFrame:SetBackdrop({
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+    bgFile = "Interface\\Buttons\\WHITE8X8",
     edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
     tile = true,
-    tileSize = 32,
+    tileSize = 8,
     edgeSize = 32,
     insets = { left = 11, right = 12, top = 12, bottom = 11 }
   })
+  settingsFrame:SetBackdropColor(0.15, 0.15, 0.15, 0.95) -- Set background color to dark gray with high opacity
+  settingsFrame:SetBackdropBorderColor(1, 1, 1, 1) -- Set border color to white
   
   -- Make the frame closable with Escape key
   settingsFrame:SetScript("OnKeyDown", function()
@@ -123,6 +203,7 @@ BuildSettingsUI = function()
     end
   end)
   settingsFrame:EnableKeyboard(true)
+  settingsFrame:Hide() -- Ensure frame is hidden when first created
 
   -- Title
   local title = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -131,8 +212,8 @@ BuildSettingsUI = function()
 
   -- Close button (X) in top-right corner
   local closeXButton = CreateFrame("Button", nil, settingsFrame)
-  closeXButton:SetWidth(20)
-  closeXButton:SetHeight(20)
+  closeXButton:SetWidth(30)
+  closeXButton:SetHeight(30)
   closeXButton:SetPoint("TOPRIGHT", settingsFrame, "TOPRIGHT", -15, -15)
   closeXButton:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up")
   closeXButton:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down")
@@ -166,46 +247,49 @@ BuildSettingsUI = function()
 
   -- Scale Slider Label
   local scaleLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  scaleLabel:SetPoint("TOPLEFT", buffSelectionButton, "BOTTOMLEFT", 0, -30)
+  scaleLabel:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 20, -120)
   scaleLabel:SetText("Buff Status UI Scale:")
 
   -- Scale Slider
   local scaleSlider = CreateFrame("Slider", nil, settingsFrame, "OptionsSliderTemplate")
-  scaleSlider:SetWidth(200)
+  scaleSlider:SetWidth(180)
   scaleSlider:SetHeight(20)
-  scaleSlider:SetPoint("TOP", scaleLabel, "BOTTOM", 0, -30)
+  scaleSlider:SetPoint("TOPLEFT", scaleLabel, "BOTTOMLEFT", 0, -20)
   scaleSlider:SetMinMaxValues(0.5, 2.0)
-  scaleSlider:SetValue(1.0)
+  -- Use saved scale setting or default to 1.0
+  local savedScale = 1.0
+  if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.scale then
+    savedScale = Akkio_Consume_Helper_Settings.settings.scale
+  end
+  scaleSlider:SetValue(savedScale)
   scaleSlider:SetValueStep(0.1)
 
   -- Scale Value Display
   local scaleValueText = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
   scaleValueText:SetPoint("BOTTOM", scaleSlider, "TOP", 0, 5)
-  scaleValueText:SetText("1.0")
+  scaleValueText:SetText(string.format("%.1f", savedScale))
 
   scaleSlider:SetScript("OnValueChanged", function()
     local value = this:GetValue()
     scaleValueText:SetText(string.format("%.1f", value))
-    -- TODO: Apply scale to BuildBuffStatusUI frame
-    if buffStatusFrame then
-      buffStatusFrame:SetScale(value)
-    end
   end)
 
-  -- Timer Interval Label
+  -- Timer Interval Label (positioned on the right side)
   local timerLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  timerLabel:SetPoint("TOPLEFT", scaleSlider, "BOTTOMLEFT", 0, -40)
+  timerLabel:SetPoint("TOPRIGHT", settingsFrame, "TOPRIGHT", -20, -120)
   timerLabel:SetText("Update Interval (seconds):")
 
-  -- Timer Input Box
-  local timerEditBox = CreateFrame("EditBox", nil, settingsFrame, "InputBoxTemplate")
-  timerEditBox:SetWidth(50)
-  timerEditBox:SetHeight(25)
-  timerEditBox:SetPoint("TOP", timerLabel, "BOTTOM", 0, -10)
-  timerEditBox:SetText("1")
-  timerEditBox:SetNumeric(true)
+  -- Timer Input Box (positioned on the right side, same Y level as scale slider)
+  local timerEditBox = CreateFrame("EditBox", "AkkioTimerEditBox", settingsFrame, "AkkioEditBoxTemplate")
+  timerEditBox:SetPoint("TOPRIGHT", timerLabel, "BOTTOMRIGHT", 0, -10)
   timerEditBox:SetMaxLetters(3)
-  timerEditBox:SetAutoFocus(false)
+  -- Use saved timer setting or default to 1
+  local savedTimer = 1
+  if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.updateTimer then
+    savedTimer = Akkio_Consume_Helper_Settings.settings.updateTimer
+  end
+  timerEditBox:SetText(tostring(savedTimer))
+
   timerEditBox:SetScript("OnEnterPressed", function()
     this:ClearFocus()
     local value = tonumber(this:GetText())
@@ -220,6 +304,60 @@ BuildSettingsUI = function()
     end
   end)
 
+  -- Icons Per Row Label (positioned on the right side, below timer)
+  local iconsPerRowLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  iconsPerRowLabel:SetPoint("TOPRIGHT", settingsFrame, "TOPRIGHT", -20, -190)
+  iconsPerRowLabel:SetText("Icons Per Row:")
+
+  -- Icons Per Row Input Box
+  local iconsPerRowEditBox = CreateFrame("EditBox", "AkkioIconsPerRowEditBox", settingsFrame, "AkkioEditBoxTemplate")
+  iconsPerRowEditBox:SetPoint("TOPRIGHT", iconsPerRowLabel, "BOTTOMRIGHT", 0, -10)
+  iconsPerRowEditBox:SetMaxLetters(2)
+  -- Load saved value or default to 5
+  local savedIconsPerRow = "5"
+  if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.iconsPerRow then
+    savedIconsPerRow = tostring(Akkio_Consume_Helper_Settings.settings.iconsPerRow)
+  end
+  iconsPerRowEditBox:SetText(savedIconsPerRow)
+  
+  iconsPerRowEditBox:SetScript("OnEnterPressed", function()
+    this:ClearFocus()
+    local value = tonumber(this:GetText())
+    if value and value > 0 and value <= 10 then
+      DEFAULT_CHAT_FRAME:AddMessage("Icons per row set to: " .. value)
+    else
+      this:SetText("5")
+      DEFAULT_CHAT_FRAME:AddMessage("Invalid value. Must be between 1-10. Reset to 5.")
+    end
+  end)
+
+  -- Combat Settings Label
+  local combatLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  combatLabel:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 20, -260)
+  combatLabel:SetText("Combat Settings:")
+
+  -- Pause Updates in Combat Checkbox
+  local pauseUpdatesCheckbox = CreateFrame("CheckButton", "AkkioPauseUpdatesCheckbox", settingsFrame, "UICheckButtonTemplate")
+  pauseUpdatesCheckbox:SetWidth(20)
+  pauseUpdatesCheckbox:SetHeight(20)
+  pauseUpdatesCheckbox:SetPoint("TOPLEFT", combatLabel, "BOTTOMLEFT", 0, -15)
+  pauseUpdatesCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat)
+
+  local pauseUpdatesLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  pauseUpdatesLabel:SetPoint("LEFT", pauseUpdatesCheckbox, "RIGHT", 5, 0)
+  pauseUpdatesLabel:SetText("Pause UI updates during combat")
+
+  -- Hide Frame in Combat Checkbox
+  local hideFrameCheckbox = CreateFrame("CheckButton", "AkkioHideFrameCheckbox", settingsFrame, "UICheckButtonTemplate")
+  hideFrameCheckbox:SetWidth(20)
+  hideFrameCheckbox:SetHeight(20)
+  hideFrameCheckbox:SetPoint("TOPLEFT", pauseUpdatesCheckbox, "BOTTOMLEFT", 0, -10)
+  hideFrameCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.hideFrameInCombat)
+
+  local hideFrameLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  hideFrameLabel:SetPoint("LEFT", hideFrameCheckbox, "RIGHT", 5, 0)
+  hideFrameLabel:SetText("Hide buff status frame during combat")
+
   -- Apply Button
   local applyButton = CreateFrame("Button", nil, settingsFrame, "UIPanelButtonTemplate")
   applyButton:SetWidth(80)
@@ -227,10 +365,42 @@ BuildSettingsUI = function()
   applyButton:SetPoint("BOTTOMLEFT", settingsFrame, "BOTTOMLEFT", 20, 20)
   applyButton:SetText("Apply")
   applyButton:SetScript("OnClick", function()
-    -- TODO: Apply all settings
+    -- Apply all settings
     local scaleValue = scaleSlider:GetValue()
     local timerValue = tonumber(timerEditBox:GetText()) or 1
-    DEFAULT_CHAT_FRAME:AddMessage("Settings applied - Scale: " .. string.format("%.1f", scaleValue) .. ", Timer: " .. timerValue)
+    local iconsPerRowValue = tonumber(iconsPerRowEditBox:GetText()) or 5
+    local pauseUpdatesValue = pauseUpdatesCheckbox:GetChecked() == 1
+    local hideFrameValue = hideFrameCheckbox:GetChecked() == 1
+    
+    -- Validate timer value
+    if timerValue < 1 or timerValue > 60 then
+      timerValue = 1
+      timerEditBox:SetText("1")
+    end
+    
+    -- Validate icons per row value
+    if iconsPerRowValue < 1 or iconsPerRowValue > 10 then
+      iconsPerRowValue = 5
+      iconsPerRowEditBox:SetText("5")
+    end
+    
+    -- Update global variable
+    updateTimer = timerValue
+    
+    -- Store all settings
+    Akkio_Consume_Helper_Settings.settings.scale = scaleValue
+    Akkio_Consume_Helper_Settings.settings.updateTimer = timerValue
+    Akkio_Consume_Helper_Settings.settings.iconsPerRow = iconsPerRowValue
+    Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat = pauseUpdatesValue
+    Akkio_Consume_Helper_Settings.settings.hideFrameInCombat = hideFrameValue
+    
+    if buffStatusFrame then
+      buffStatusFrame:SetScale(scaleValue)
+      -- Rebuild buff status UI to apply new icons per row setting
+      BuildBuffStatusUI()
+    end
+    
+    DEFAULT_CHAT_FRAME:AddMessage("Settings applied - Scale: " .. string.format("%.1f", scaleValue) .. ", Timer: " .. timerValue .. ", Icons per row: " .. iconsPerRowValue)
   end)
 
   -- Reset value button
@@ -240,10 +410,30 @@ BuildSettingsUI = function()
   cancelButton:SetPoint("LEFT", applyButton, "RIGHT", 10, 0)
   cancelButton:SetText("Reset values")
   cancelButton:SetScript("OnClick", function()
-    -- TODO: Reset values to original settings
+    -- Reset values to defaults
     scaleSlider:SetValue(1.0)
     scaleValueText:SetText("1.0")
     timerEditBox:SetText("1")
+    iconsPerRowEditBox:SetText("5")
+    pauseUpdatesCheckbox:SetChecked(true)
+    hideFrameCheckbox:SetChecked(false)
+    
+    -- Reset saved settings to defaults
+    Akkio_Consume_Helper_Settings.settings.scale = 1.0
+    Akkio_Consume_Helper_Settings.settings.updateTimer = 1
+    Akkio_Consume_Helper_Settings.settings.iconsPerRow = 5
+    Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat = true
+    Akkio_Consume_Helper_Settings.settings.hideFrameInCombat = false
+    
+    -- Update global variable
+    updateTimer = 1
+    
+    -- Apply default scale and rebuild UI
+    if buffStatusFrame then
+      buffStatusFrame:SetScale(1.0)
+      BuildBuffStatusUI()
+    end
+    
     DEFAULT_CHAT_FRAME:AddMessage("Settings reset to defaults")
   end)
 
@@ -268,7 +458,26 @@ BuildBuffSelectionUI = function()
   wipeTable(tempTable)
 
   for _, name in ipairs(Akkio_Consume_Helper_Settings.enabledBuffs) do
-    tempTable[name] = true
+    -- Handle both old format (just name) and new format (name_slot for weapon enchants)
+    local actualName = name
+    local slot = nil
+    
+    -- Check if this is a weapon enchant with slot info
+    if string.find(name, "_mainhand") then
+      actualName = string.gsub(name, "_mainhand", "")
+      slot = "mainhand"
+    elseif string.find(name, "_offhand") then
+      actualName = string.gsub(name, "_offhand", "")  
+      slot = "offhand"
+    end
+    
+    if slot then
+      -- Create unique identifier for weapon enchants in tempTable
+      tempTable[name] = true
+    else
+      -- Regular buffs use just the name
+      tempTable[actualName] = true
+    end
   end
 
   local max_width = 500
@@ -278,20 +487,31 @@ BuildBuffSelectionUI = function()
   buffSelectFrame = CreateFrame("Frame", "BuffToggleFrame", UIParent)
   buffSelectFrame:SetWidth(max_width)
   buffSelectFrame:SetHeight(max_height)
-  buffSelectFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 32)
+  
+  -- Position to the right of settings frame if it exists and is shown
+  if settingsFrame and settingsFrame:IsShown() then
+    buffSelectFrame:SetPoint("TOPLEFT", settingsFrame, "TOPRIGHT", 10, 0)
+  else
+    buffSelectFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 32)
+  end
+  
+  buffSelectFrame:SetFrameStrata("DIALOG")
+  buffSelectFrame:SetFrameLevel(100)
   buffSelectFrame:SetMovable(true)
   buffSelectFrame:EnableMouse(true)
   buffSelectFrame:RegisterForDrag("LeftButton")
   buffSelectFrame:SetScript("OnDragStart", function() buffSelectFrame:StartMoving() end)
   buffSelectFrame:SetScript("OnDragStop", function() buffSelectFrame:StopMovingOrSizing() end)
   buffSelectFrame:SetBackdrop({
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+    bgFile = "Interface\\Buttons\\WHITE8X8",
     edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
     tile = true,
-    tileSize = 32,
+    tileSize = 8,
     edgeSize = 32,
     insets = { left = 11, right = 12, top = 12, bottom = 11 }
   })
+  buffSelectFrame:SetBackdropColor(0.1, 0.1, 0.1, 0.95) -- Set background color to dark gray with high opacity
+  buffSelectFrame:SetBackdropBorderColor(1, 1, 1, 1) -- Set border color to white
 
   -- ScrollFrame
   buffSelectFrame.scrollframe = CreateFrame("ScrollFrame", "AdvancedSettingsGUIScrollframe", buffSelectFrame,
@@ -322,12 +542,20 @@ BuildBuffSelectionUI = function()
       currentYOffset = currentYOffset + 30
     else
       local cb = CreateFrame("CheckButton", "BuffCheckbox" .. i, content, "UICheckButtonTemplate")
+      cb:SetWidth(20)
+      cb:SetHeight(20)
       cb:SetPoint("TOPLEFT", content, "TOPLEFT", 10, -10 - currentYOffset)
-      cb:SetChecked(tempTable[buff.name] ~= nil)
+      
+      -- Check if this buff should be checked based on unique name for weapon enchants
+      local checkName = buff.name
+      if buff.isWeaponEnchant then
+        checkName = buff.name .. "_" .. buff.slot
+      end
+      cb:SetChecked(tempTable[checkName] ~= nil)
 
       local icon = content:CreateTexture(nil, "ARTWORK")
-      icon:SetWidth(30)
-      icon:SetHeight(30)
+      icon:SetWidth(20)
+      icon:SetHeight(20)
       icon:SetPoint("LEFT", cb, "RIGHT", 5, 0)
       icon:SetTexture(buff.icon)
 
@@ -338,14 +566,33 @@ BuildBuffSelectionUI = function()
 
       local label = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
       label:SetPoint("LEFT", icon, "RIGHT", 5, 0)
-      label:SetText(buff.name)
+      
+      -- Store the necessary data as local variables BEFORE setting up the closure
+      local isWeaponEnchant = buff.isWeaponEnchant
+      local buffSlot = buff.slot
+      local actualBuffName = buff.name
+      
+      -- For weapon enchants, show the slot information
+      if isWeaponEnchant then
+        local slotText = buffSlot == "mainhand" and " (MH)" or " (OH)"
+        label:SetText(actualBuffName .. slotText)
+      else
+        label:SetText(actualBuffName)
+      end
 
       cb:SetScript("OnClick", function()
         local buffName = label:GetText()
+        
+        -- For weapon enchants, create a unique identifier that includes slot
+        local uniqueName = buffName
+        if isWeaponEnchant then
+          uniqueName = actualBuffName .. "_" .. buffSlot
+        end
+        
         if this:GetChecked() == 1 then
-          tempTable[buffName] = true
+          tempTable[uniqueName] = true
         else
-          tempTable[buffName] = nil
+          tempTable[uniqueName] = nil
         end
       end)
       currentYOffset = currentYOffset + checkboxHeight
@@ -362,8 +609,15 @@ BuildBuffSelectionUI = function()
     wipeTable(Akkio_Consume_Helper_Settings.enabledBuffs)
 
     for i, buff in ipairs(allBuffs) do
-      if not buff.header and tempTable[buff.name] then
-        table.insert(Akkio_Consume_Helper_Settings.enabledBuffs, buff.name)
+      if not buff.header then
+        local checkName = buff.name
+        if buff.isWeaponEnchant then
+          checkName = buff.name .. "_" .. buff.slot
+        end
+        
+        if tempTable[checkName] then
+          table.insert(Akkio_Consume_Helper_Settings.enabledBuffs, checkName)
+        end
       end
     end
 
@@ -381,11 +635,27 @@ BuildBuffStatusUI = function()
   wipeTable(enabledBuffsList)
 
   for _, name in ipairs(Akkio_Consume_Helper_Settings.enabledBuffs) do
+    -- Handle both old format (just name) and new format (name_slot for weapon enchants)
+    local actualName = name
+    local slot = nil
+    
+    -- Check if this is a weapon enchant with slot info
+    if string.find(name, "_mainhand") then
+      actualName = string.gsub(name, "_mainhand", "")
+      slot = "mainhand"
+    elseif string.find(name, "_offhand") then
+      actualName = string.gsub(name, "_offhand", "")  
+      slot = "offhand"
+    end
+    
     -- Find the full buff data from allBuffs
     for _, buff in ipairs(allBuffs) do
-      if buff.name == name then
-        table.insert(enabledBuffsList, buff)
-        break
+      if buff.name == actualName then
+        -- For weapon enchants, only add if slot matches or if it's not a weapon enchant
+        if not buff.isWeaponEnchant or buff.slot == slot then
+          table.insert(enabledBuffsList, buff)
+          break
+        end
       end
     end
   end
@@ -395,6 +665,12 @@ BuildBuffStatusUI = function()
     buffStatusFrame:SetWidth(250)
     buffStatusFrame:SetHeight(400)
     buffStatusFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 32)
+    -- Use saved scale setting or default to 1.0
+    local scale = 1.0
+    if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.scale then
+      scale = Akkio_Consume_Helper_Settings.settings.scale
+    end
+    buffStatusFrame:SetScale(scale)
     buffStatusFrame:EnableMouse(true)
     buffStatusFrame:SetMovable(true)
     buffStatusFrame:RegisterForDrag("LeftButton")
@@ -427,14 +703,31 @@ BuildBuffStatusUI = function()
 
   local xOffset = 30
   local yOffset = -30
+  
+  -- Get icons per row setting, default to 5 if not set
+  local iconsPerRow = 5
+  if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.iconsPerRow then
+    iconsPerRow = Akkio_Consume_Helper_Settings.settings.iconsPerRow
+  end
+  
+  -- Calculate the maximum xOffset based on icons per row (30 pixels per icon + starting offset)
+  local maxXOffset = 30 + (iconsPerRow - 1) * 30
+  
   for _, data in ipairs(enabledBuffsList) do
     local hasBuff = false
-    for i = 1, 40 do
-      local buffName = UnitBuff("player", i)
-      if not buffName then break end
-      if buffName == data.buffIcon or buffName == data.raidbuffIcon then
-        hasBuff = true
-        break
+    
+    -- Check if this is a weapon enchant
+    if data.isWeaponEnchant then
+      hasBuff = checkWeaponEnchant(data.slot)
+    else
+      -- Regular buff checking
+      for i = 1, 40 do
+        local buffName = UnitBuff("player", i)
+        if not buffName then break end
+        if buffName == data.buffIcon or buffName == data.raidbuffIcon then
+          hasBuff = true
+          break
+        end
       end
     end
 
@@ -457,14 +750,32 @@ BuildBuffStatusUI = function()
 
     local iconAmountLabel = icon:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     iconAmountLabel:SetPoint("BOTTOM", icon, "BOTTOM", 10, 0)
+    
+    -- Show item amounts for all items, including weapon enchants
     local itemAmount = findItemInBagAndGetAmmount(data.name)
     iconAmountLabel:SetText(itemAmount > 0 and itemAmount or "")
+
+    -- Add slot indicator for weapon enchants
+    if data.isWeaponEnchant then
+      local slotIndicator = icon:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+      slotIndicator:SetPoint("TOP", icon, "TOP", 0, -2)
+      slotIndicator:SetText(data.slot == "mainhand" and "MH" or "OH")
+      slotIndicator:SetTextColor(1, 1, 0, 1) -- Yellow text for visibility
+    end
 
     --remove lable in production need to be able to get targeted tho for nameEntries
     --so perhaps just hide it instead?
     local label = buffStatusFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     label:SetPoint("LEFT", icon, "RIGHT", 5, 0)
-    label:SetText(data.name)
+    
+    -- For weapon enchants, show the slot information
+    if data.isWeaponEnchant then
+      local slotText = data.slot == "mainhand" and " (MH)" or " (OH)"
+      label:SetText(data.name .. slotText)
+    else
+      label:SetText(data.name)
+    end
+    
     label:Hide() -- Hide the label in production
     if hasBuff then
       label:SetTextColor(0, 1, 0)
@@ -478,6 +789,22 @@ BuildBuffStatusUI = function()
       local buffName = label:GetText()
       local buffdata = this.buffdata
 
+      -- Handle weapon enchants differently
+      if buffdata.isWeaponEnchant then
+        if hasBuff then
+          DEFAULT_CHAT_FRAME:AddMessage("Your " .. buffdata.slot .. " weapon already has an enchant.")
+        else
+          -- Try to find and use the weapon enchant item
+          if findItemInBagAndGetAmmount(buffdata.name) > 0 then
+            applyWeaponEnchant(buffdata.name, buffdata.slot)
+          else
+            DEFAULT_CHAT_FRAME:AddMessage("You don't have " .. buffName .. " in your bags.")
+          end
+        end
+        return
+      end
+
+      -- Regular buff handling
       if hasBuff then
         DEFAULT_CHAT_FRAME:AddMessage("You already have " .. buffName .. " buff active.")
       else
@@ -502,9 +829,9 @@ BuildBuffStatusUI = function()
     table.insert(buffStatusFrame.children, icon)
     table.insert(buffStatusFrame.children, label)
 
-    -- Positioning logic for maximum of 5 icons per row
+    -- Positioning logic for configurable icons per row
     xOffset = xOffset + 30
-    if xOffset > 150 then
+    if xOffset > maxXOffset then
       yOffset = yOffset - 30
       xOffset = 30
     end
@@ -551,6 +878,15 @@ CheckActiveBuffs = function()
     DEFAULT_CHAT_FRAME:AddMessage("Active buff: " .. name)
   end
 
+  -- Check weapon enchants
+  local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _ = GetWeaponEnchantInfo()
+  if hasMainHandEnchant then
+    DEFAULT_CHAT_FRAME:AddMessage("Active weapon enchant: Main Hand")
+  end
+  if hasOffHandEnchant then
+    DEFAULT_CHAT_FRAME:AddMessage("Active weapon enchant: Off Hand")
+  end
+
   for buffName, data in pairs(enabledBuffs) do
     DEFAULT_CHAT_FRAME:AddMessage("Checking buff: " .. buffName)
     if not activeBuffIcons[data.searchableIconTexture] then
@@ -590,14 +926,14 @@ CreateMinimapButton = function()
   miniMapBtn.border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
 
   miniMapBtn:SetScript("OnClick", function()
-    if not buffSelectFrame then
-      BuildBuffSelectionUI()
+    if not settingsFrame then
+      BuildSettingsUI()
     end
 
-    if buffSelectFrame:IsShown() then
-      buffSelectFrame:Hide()
+    if settingsFrame:IsShown() then
+      settingsFrame:Hide()
     else
-      buffSelectFrame:Show()
+      settingsFrame:Show()
     end
   end)
 
@@ -605,7 +941,7 @@ CreateMinimapButton = function()
   miniMapBtn:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(this, "ANCHOR_LEFT")
     GameTooltip:AddLine("Akkio Consume Helper")
-    GameTooltip:AddLine("Left-click to toggle", 1, 1, 1)
+    GameTooltip:AddLine("Left-click to open settings", 1, 1, 1)
     GameTooltip:Show()
   end)
 
@@ -653,7 +989,61 @@ local function OnAddonLoaded()
   CreateMinimapButton()
 end
 
+local function OnInCombat()
+  -- Debug message to confirm the function is called
+  DEFAULT_CHAT_FRAME:AddMessage("Entering combat - Applying combat settings.")
+  
+  -- Set combat state
+  Akkio_Consume_Helper_Settings.settings.inCombat = true
+  
+  -- Stop the buff status UI updates during combat (if enabled)
+  if Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat and buffStatusFrame and buffStatusFrame.ticker then
+    buffStatusFrame.ticker:SetScript("OnUpdate", nil)
+  end
+  
+  -- Hide the buff status frame during combat (if enabled)
+  if Akkio_Consume_Helper_Settings.settings.hideFrameInCombat and buffStatusFrame then
+    buffStatusFrame:Hide()
+  end
+end
+
+local function OnLeavingCombat()
+  -- Debug message to confirm the function is called
+  DEFAULT_CHAT_FRAME:AddMessage("Leaving combat - Restoring normal operation.")
+  
+  -- Set combat state
+  Akkio_Consume_Helper_Settings.settings.inCombat = false
+  
+  -- Resume buff status UI updates after combat (if they were paused)
+  if Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat and buffStatusFrame and buffStatusFrame.ticker then
+    buffStatusFrame.ticker.lastUpdate = GetTime() -- Reset the timer
+    buffStatusFrame.ticker:SetScript("OnUpdate", function()
+      local now = GetTime()
+      if (now - this.lastUpdate) > updateTimer then
+        BuildBuffStatusUI()
+        this.lastUpdate = now
+      end
+    end)
+  end
+  
+  -- Show the buff status frame after combat (if it was hidden)
+  if Akkio_Consume_Helper_Settings.settings.hideFrameInCombat and buffStatusFrame then
+    buffStatusFrame:Show()
+  end
+end
 -- Event handling
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("VARIABLES_LOADED")
 initFrame:SetScript("OnEvent", OnAddonLoaded)
+
+local inCombatFrame = CreateFrame("Frame")
+inCombatFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+inCombatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+inCombatFrame:SetScript("OnEvent", function()
+  DEFAULT_CHAT_FRAME:AddMessage("Combat event detected: " .. event)
+  if event == "PLAYER_REGEN_DISABLED" then
+    OnInCombat()
+  elseif event == "PLAYER_REGEN_ENABLED" then
+    OnLeavingCombat()
+  end
+end)
