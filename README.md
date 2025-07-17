@@ -40,10 +40,10 @@
 
 ## Installation
 
-1. Download the addon files OR if u are using turtle luancher add the github link
-2. Extract to your `Interface/AddOns/` folder
+1. Download the addon files or add the GitHub repository link in Turtle Launcher (when using the launcher, skip step 2)
+2. Extract all files to your `Interface/AddOns/` folder
 3. Restart World of Warcraft
-4. Configure via minimap button or `/akkioconsume`
+4. Configure using the minimap button or type `/akkioconsume` in chat
 
 ## Commands
 
