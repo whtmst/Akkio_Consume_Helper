@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.0.2"
+local ADDON_VERSION = "1.0.3"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -160,6 +160,113 @@ local settingsFrame = nil
 local buffStatusFrame = nil
 local resetConfirmFrame = nil
 
+-- ============================================================================
+-- BUFF TRACKER SYSTEM (Normal Buffs Only)
+-- ============================================================================
+
+-- Function to ensure buffTracker is properly initialized in saved variables
+local function initializeBuffTracker()
+  if not Akkio_Consume_Helper_Settings.buffTracker then
+    Akkio_Consume_Helper_Settings.buffTracker = {}
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Akkio Consume Helper:|r Initialized buff tracker in saved variables")
+  end
+end
+
+-- Initialize buff tracker (call this after saved variables are loaded)
+initializeBuffTracker()
+local buffTracker = Akkio_Consume_Helper_Settings.buffTracker
+
+-- Function to get buff duration from the data table
+local function getBuffDuration(buffTexture)
+  -- Look up duration in the allBuffs data table by matching buffIcon
+  for _, buff in ipairs(allBuffs) do
+    if not buff.header and buff.buffIcon == buffTexture and buff.duration then
+      return buff.duration
+    end
+  end
+  
+  -- Default duration for unknown buffs (30 minutes = 1800 seconds)
+  return 1800
+end
+
+-- Function to update buff tracker for normal buffs
+local function updateBuffTracker(buffName, buffTexture)
+  if not buffName or not buffTexture then return end
+  
+  local now = GetTime()
+  local duration = getBuffDuration(buffTexture)
+  
+  -- Ensure buffTracker is properly initialized
+  if not buffTracker then
+    initializeBuffTracker()
+    buffTracker = Akkio_Consume_Helper_Settings.buffTracker
+  end
+  
+  -- If buff is currently active (this function is only called when buff is detected),
+  -- we should NOT restart the timer even if elapsed time seems high
+  if not buffTracker[buffName] then
+    -- Brand new buff - start tracking
+    buffTracker[buffName] = {
+      startTime = now,
+      duration = duration,
+      lastSeen = now,
+      icon = buffTexture
+    }
+    
+    -- Explicitly save to ensure persistence
+    Akkio_Consume_Helper_Settings.buffTracker[buffName] = buffTracker[buffName]
+  else
+    -- Buff already being tracked and is still active
+    local tracker = buffTracker[buffName]
+    local elapsedTime = now - tracker.startTime
+    
+    -- Since the buff is currently active, just update duration and last seen
+    buffTracker[buffName].duration = duration
+    buffTracker[buffName].lastSeen = now
+    buffTracker[buffName].icon = buffTexture
+    
+    -- Explicitly save changes
+    Akkio_Consume_Helper_Settings.buffTracker[buffName] = buffTracker[buffName]
+  end
+end
+
+-- Function to check if a tracked buff is still valid based on timestamp
+local function isBuffStillValid(buffName)
+  if not buffTracker[buffName] then return false end
+  
+  local tracker = buffTracker[buffName]
+  local now = GetTime()
+  local elapsedTime = now - tracker.startTime
+  
+  return elapsedTime < tracker.duration
+end
+
+-- Function to get remaining time for a buff
+local function getBuffRemainingTime(buffName)
+  if not buffTracker[buffName] then return 0 end
+  
+  local tracker = buffTracker[buffName]
+  local now = GetTime()
+  local elapsedTime = now - tracker.startTime
+  local remainingTime = tracker.duration - elapsedTime
+  
+  return math.max(0, remainingTime)
+end
+
+-- Function to format time display
+local function formatTimeRemaining(seconds)
+  if seconds <= 0 then return "" end
+  
+  local minutes = math.floor(seconds / 60)
+  local secs = math.floor(seconds - (minutes * 60))
+  
+  if minutes > 0 then
+    return minutes .. "m"
+  else
+    return secs .. "s"
+  end
+end
+
 -- Forward declarations for functions that reference each other
 local BuildBuffSelectionUI
 local BuildSettingsUI
@@ -283,6 +390,14 @@ local function UpdateBuffStatusOnly()
     return
   end
   
+  -- First pass: scan active buffs and update tracker for normal buffs
+  local activeBuffs = {}
+  for i = 1, 40 do
+    local buffTexture = UnitBuff("player", i)
+    if not buffTexture then break end
+    activeBuffs[buffTexture] = true
+  end
+  
   -- Only update existing icons instead of rebuilding entire UI
   for i = 1, table.getn(buffStatusFrame.children) do
     local icon = buffStatusFrame.children[i]
@@ -294,13 +409,33 @@ local function UpdateBuffStatusOnly()
       if data.isWeaponEnchant then
         hasBuff = checkWeaponEnchant(data.slot)
       else
-        -- Cache buff check for regular buffs
-        for j = 1, 40 do
-          local buffName = UnitBuff("player", j)
-          if not buffName then break end
-          if buffName == data.buffIcon or buffName == data.raidbuffIcon then
-            hasBuff = true
+        -- Enhanced buff checking for normal buffs with timestamp tracking
+        local buffFound = false
+        for buffTexture, _ in pairs(activeBuffs) do
+          if buffTexture == data.buffIcon or buffTexture == data.raidbuffIcon then
+            buffFound = true
+            -- Update tracker when buff is found active (use data.name as consistent key)
+            updateBuffTracker(data.name, buffTexture)
             break
+          end
+        end
+        
+        -- If buff not currently active, check if still valid based on timestamp
+        if buffFound then
+          hasBuff = true
+        else
+          -- Buff not found in active buffs - could be expired OR manually removed
+          if isBuffStillValid(data.name) then
+            -- Timestamp says it should still be active, but it's not found
+            -- This means it was manually removed - clear the tracker
+            if buffTracker and buffTracker[data.name] then
+              buffTracker[data.name] = nil
+              Akkio_Consume_Helper_Settings.buffTracker[data.name] = nil
+            end
+            hasBuff = false
+          else
+            -- Timestamp expired naturally
+            hasBuff = false
           end
         end
       end
@@ -312,6 +447,33 @@ local function UpdateBuffStatusOnly()
           iconTexture:SetVertexColor(1, 1, 1, 1)
         else
           iconTexture:SetVertexColor(1, 0, 0, 1)
+        end
+      end
+      
+      -- Update timer display for normal buffs (only if they have duration and timer label)
+      if not data.isWeaponEnchant and data.duration and icon.timerLabel then
+        local remainingTime = getBuffRemainingTime(data.name)
+        icon.timerLabel:SetText(formatTimeRemaining(remainingTime))
+      end
+      
+      -- Update timer display for weapon enchants using GetWeaponEnchantInfo
+      if data.isWeaponEnchant and icon.timerLabel then
+        if data.slot == "mainhand" then
+          local hasMainHandEnchant, mainHandExpiration = GetWeaponEnchantInfo()
+          if hasMainHandEnchant and mainHandExpiration then
+            local remainingSeconds = mainHandExpiration / 1000 -- Convert milliseconds to seconds
+            icon.timerLabel:SetText(formatTimeRemaining(remainingSeconds))
+          else
+            icon.timerLabel:SetText("")
+          end
+        elseif data.slot == "offhand" then
+          local _, _, _, hasOffHandEnchant, offHandExpiration = GetWeaponEnchantInfo()
+          if hasOffHandEnchant and offHandExpiration then
+            local remainingSeconds = offHandExpiration / 1000 -- Convert milliseconds to seconds
+            icon.timerLabel:SetText(formatTimeRemaining(remainingSeconds))
+          else
+            icon.timerLabel:SetText("")
+          end
         end
       end
       
@@ -508,11 +670,11 @@ BuildSettingsUI = function()
   -- Scale Value Display
   local scaleValueText = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
   scaleValueText:SetPoint("BOTTOM", scaleSlider, "TOP", 0, 5)
-  scaleValueText:SetText(string.format("%.1f", savedScale))
+  scaleValueText:SetText(tostring(savedScale))
 
   scaleSlider:SetScript("OnValueChanged", function()
     local value = this:GetValue()
-    scaleValueText:SetText(string.format("%.1f", value))
+    scaleValueText:SetText(tostring(value))
   end)
 
   -- Timer Interval Label (positioned on the right side)
@@ -676,7 +838,7 @@ BuildSettingsUI = function()
     end
     
     DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio Consume Helper:|r Settings applied successfully!")
-    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Scale:|r " .. string.format("%.1f", scaleValue) .. " |cffFFFF00Timer:|r " .. timerValue .. "s |cffFFFF00Icons per row:|r " .. iconsPerRowValue)
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Scale:|r " .. tostring(scaleValue) .. " |cffFFFF00Timer:|r " .. timerValue .. "s |cffFFFF00Icons per row:|r " .. iconsPerRowValue)
   end)
 
   -- Reset value button
@@ -1188,9 +1350,9 @@ BuildBuffStatusUI = function()
     else
       -- Regular buff checking
       for i = 1, 40 do
-        local buffName = UnitBuff("player", i)
-        if not buffName then break end
-        if buffName == data.buffIcon or buffName == data.raidbuffIcon then
+        local buffTexture = UnitBuff("player", i)
+        if not buffTexture then break end
+        if buffTexture == data.buffIcon or buffTexture == data.raidbuffIcon then
           hasBuff = true
           break
         end
@@ -1225,12 +1387,53 @@ BuildBuffStatusUI = function()
     icon.amountLabel = iconAmountLabel
     icon.buffdata = data
 
-    -- Add slot indicator for weapon enchants
+    -- Add timer label for normal buffs (not weapon enchants) and only if they have a duration
+    if not data.isWeaponEnchant and data.duration then
+      local timerLabel = icon:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+      timerLabel:SetPoint("TOP", icon, "TOP", 0, -2)
+      timerLabel:SetTextColor(1, 1, 1, 1) -- White text for visibility
+      
+      -- Show remaining time if buff is tracked
+      local remainingTime = getBuffRemainingTime(data.name)
+      timerLabel:SetText(formatTimeRemaining(remainingTime))
+      
+      -- Store reference for fast updates
+      icon.timerLabel = timerLabel
+    end
+
+    -- Add slot indicator and timer for weapon enchants
     if data.isWeaponEnchant then
       local slotIndicator = icon:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
       slotIndicator:SetPoint("TOP", icon, "TOP", 0, -2)
       slotIndicator:SetText(data.slot == "mainhand" and "MH" or "OH")
       slotIndicator:SetTextColor(1, 1, 0, 1) -- Yellow text for visibility
+      
+      -- Add timer label for weapon enchants using GetWeaponEnchantInfo
+      local timerLabel = icon:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+      timerLabel:SetPoint("BOTTOM", icon, "BOTTOM", 0, 2)
+      timerLabel:SetTextColor(1, 1, 1, 1) -- White text for visibility
+      
+      -- Get initial weapon enchant time
+      if data.slot == "mainhand" then
+        local hasMainHandEnchant, mainHandExpiration = GetWeaponEnchantInfo()
+        if hasMainHandEnchant and mainHandExpiration then
+          local remainingSeconds = mainHandExpiration / 1000 -- Convert milliseconds to seconds
+          timerLabel:SetText(formatTimeRemaining(remainingSeconds))
+        else
+          timerLabel:SetText("")
+        end
+      elseif data.slot == "offhand" then
+        local _, _, _, hasOffHandEnchant, offHandExpiration = GetWeaponEnchantInfo()
+        if hasOffHandEnchant and offHandExpiration then
+          local remainingSeconds = offHandExpiration / 1000 -- Convert milliseconds to seconds
+          timerLabel:SetText(formatTimeRemaining(remainingSeconds))
+        else
+          timerLabel:SetText("")
+        end
+      end
+      
+      -- Store reference for fast updates
+      icon.timerLabel = timerLabel
     end
 
     local label = buffStatusFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
@@ -1254,23 +1457,39 @@ BuildBuffStatusUI = function()
       local buffName = label:GetText()
       local buffdata = this.buffdata
 
+      -- Check current buff status dynamically
+      local currentlyHasBuff = false
+      if buffdata.isWeaponEnchant then
+        currentlyHasBuff = checkWeaponEnchant(buffdata.slot)
+      else
+        -- Check if normal buff is currently active
+        for i = 1, 40 do
+          local buffTexture = UnitBuff("player", i)
+          if not buffTexture then break end
+          if buffTexture == buffdata.buffIcon or buffTexture == buffdata.raidbuffIcon then
+            currentlyHasBuff = true
+            break
+          end
+        end
+      end
+
       -- Handle weapon enchants differently
       if buffdata.isWeaponEnchant then
-        if hasBuff then
+        if currentlyHasBuff then
           DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Info:|r Your " .. buffdata.slot .. " weapon already has an enchant applied.")
         else
           -- Try to find and use the weapon enchant item
           if findItemInBagAndGetAmount(buffdata.name) > 0 then
             applyWeaponEnchant(buffdata.name, buffdata.slot)
           else
-            DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6B" .. buffName .. " not found in your bags.|r")
+            DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6B" .. buffdata.name .. " not found in your bags.|r")
           end
         end
         return
       end
 
-      -- Regular buff handling
-      if hasBuff then
+      -- Regular buff handling (for consumables)
+      if currentlyHasBuff then
         DEFAULT_CHAT_FRAME:AddMessage("|cff98FB98You already have " .. buffName .. " buff active.|r")
       else
         if GetNumRaidMembers() > 0 then
@@ -1285,7 +1504,7 @@ BuildBuffStatusUI = function()
         end
         --DEFAULT_CHAT_FRAME:AddMessage("I need " .. buffName)
         if buffdata.canBeAnounced == false and findItemInBagAndGetAmount(buffdata.name) > 0 then
-          findAndUseItemByName(buffName)
+          findAndUseItemByName(buffdata.name)
         end
       end
     end)
@@ -1308,8 +1527,24 @@ BuildBuffStatusUI = function()
       local buffdata = this.buffdata
       local itemAmount = findItemInBagAndGetAmount(buffdata.name)
       
+      -- Check current buff status dynamically for tooltip
+      local tooltipHasBuff = false
+      if buffdata.isWeaponEnchant then
+        tooltipHasBuff = checkWeaponEnchant(buffdata.slot)
+      else
+        -- Check if normal buff is currently active
+        for i = 1, 40 do
+          local buffTexture = UnitBuff("player", i)
+          if not buffTexture then break end
+          if buffTexture == buffdata.buffIcon or buffTexture == buffdata.raidbuffIcon then
+            tooltipHasBuff = true
+            break
+          end
+        end
+      end
+      
       -- Main title with status color
-      if hasBuff then
+      if tooltipHasBuff then
         GameTooltip:AddLine(buffdata.name, 0, 1, 0, 1) -- Green for active
       else
         GameTooltip:AddLine(buffdata.name, 1, 0, 0, 1) -- Red for missing
@@ -1318,14 +1553,35 @@ BuildBuffStatusUI = function()
       -- Status line
       if buffdata.isWeaponEnchant then
         local slotText = buffdata.slot == "mainhand" and "Main Hand" or "Off Hand"
-        if hasBuff then
+        if tooltipHasBuff then
           GameTooltip:AddLine("Status: " .. slotText .. " enchanted", 0, 1, 0, 1)
+          -- Show remaining time for weapon enchants
+          if buffdata.slot == "mainhand" then
+            local hasMainHandEnchant, mainHandExpiration = GetWeaponEnchantInfo()
+            if hasMainHandEnchant and mainHandExpiration then
+              local remainingSeconds = mainHandExpiration / 1000 -- Convert milliseconds to seconds
+              GameTooltip:AddLine("Time remaining: " .. formatTimeRemaining(remainingSeconds), 1, 1, 0, 1)
+            end
+          elseif buffdata.slot == "offhand" then
+            local _, _, _, hasOffHandEnchant, offHandExpiration = GetWeaponEnchantInfo()
+            if hasOffHandEnchant and offHandExpiration then
+              local remainingSeconds = offHandExpiration / 1000 -- Convert milliseconds to seconds
+              GameTooltip:AddLine("Time remaining: " .. formatTimeRemaining(remainingSeconds), 1, 1, 0, 1)
+            end
+          end
         else
           GameTooltip:AddLine("Status: " .. slotText .. " not enchanted", 1, 0.5, 0, 1)
         end
       else
-        if hasBuff then
+        if tooltipHasBuff then
           GameTooltip:AddLine("Status: Active", 0, 1, 0, 1)
+          -- Show remaining time for normal buffs only if they have duration
+          if buffdata.duration then
+            local remainingTime = getBuffRemainingTime(buffdata.name)
+            if remainingTime > 0 then
+              GameTooltip:AddLine("Time remaining: " .. formatTimeRemaining(remainingTime), 1, 1, 0, 1)
+            end
+          end
         else
           GameTooltip:AddLine("Status: Missing", 1, 0.5, 0, 1)
         end
@@ -1341,7 +1597,7 @@ BuildBuffStatusUI = function()
       -- Action hint
       GameTooltip:AddLine(" ", 1, 1, 1, 1) -- Empty line
       if buffdata.isWeaponEnchant then
-        if hasBuff then
+        if tooltipHasBuff then
           GameTooltip:AddLine("Weapon enchant is active", 0.7, 0.7, 0.7, 1)
         else
           if itemAmount > 0 then
@@ -1351,7 +1607,7 @@ BuildBuffStatusUI = function()
           end
         end
       else
-        if hasBuff then
+        if tooltipHasBuff then
           GameTooltip:AddLine("Buff is already active", 0.7, 0.7, 0.7, 1)
         else
           if buffdata.canBeAnounced then
@@ -1583,12 +1839,52 @@ SlashCmdList["AKKIODEBUG"] = function()
   end
   
   -- Check weapon enchants
-  local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _ = GetWeaponEnchantInfo()
+  local hasMainHandEnchant, mainHandExpiration, _, hasOffHandEnchant, offHandExpiration = GetWeaponEnchantInfo()
   DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFF=== WEAPON ENCHANTS ===|r")
-  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFMain Hand:|r " .. (hasMainHandEnchant and "|cff00FF00Enchanted|r" or "|cffFF6B6BNot Enchanted|r"))
-  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFOff Hand:|r " .. (hasOffHandEnchant and "|cff00FF00Enchanted|r" or "|cffFF6B6BNot Enchanted|r"))
+  if hasMainHandEnchant then
+    local remainingSeconds = mainHandExpiration and (mainHandExpiration / 1000) or 0
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFMain Hand:|r |cff00FF00Enchanted|r (" .. formatTimeRemaining(remainingSeconds) .. " remaining)")
+  else
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFMain Hand:|r |cffFF6B6BNot Enchanted|r")
+  end
+  
+  if hasOffHandEnchant then
+    local remainingSeconds = offHandExpiration and (offHandExpiration / 1000) or 0
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFOff Hand:|r |cff00FF00Enchanted|r (" .. formatTimeRemaining(remainingSeconds) .. " remaining)")
+  else
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFOff Hand:|r |cffFF6B6BNot Enchanted|r")
+  end
+
+  -- Show timestamp tracker information
+  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFF=== BUFF TRACKER ===|r")
+  local trackerCount = 0
+  for buffName, tracker in pairs(buffTracker) do
+    trackerCount = trackerCount + 1
+    local remainingTime = getBuffRemainingTime(buffName)
+    local timeText = formatTimeRemaining(remainingTime)
+    local validText = isBuffStillValid(buffName) and "|cff00FF00Valid|r" or "|cffFF6B6BExpired|r"
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00" .. buffName .. ":|r " .. timeText .. " (" .. validText .. ")")
+  end
+  
+  if trackerCount == 0 then
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo buffs currently tracked.|r")
+  else
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFTotal tracked buffs: " .. trackerCount .. "|r")
+  end
 
   DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6=== END DEBUG SCAN ===|r")
+end
+
+SLASH_AKKIOCLEAR1 = "/actclear"
+SlashCmdList["AKKIOCLEAR"] = function()
+  -- Clear the buff tracker
+  wipeTable(buffTracker)
+  DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio Consume Helper:|r Buff tracker cleared!")
+  
+  -- Force refresh to update UI
+  if buffStatusFrame then
+    ForceRefreshBuffStatus()
+  end
 end
 
 -- ============================================================================
@@ -1670,5 +1966,24 @@ inCombatFrame:SetScript("OnEvent", function()
     OnInCombat()
   elseif event == "PLAYER_REGEN_ENABLED" then
     OnLeavingCombat()
+  end
+end)
+
+-- Ensure buff tracker data gets saved
+local saveFrame = CreateFrame("Frame")
+saveFrame:RegisterEvent("PLAYER_LOGOUT")
+saveFrame:RegisterEvent("ADDON_LOADED")
+saveFrame:SetScript("OnEvent", function()
+  if event == "ADDON_LOADED" and arg1 == "Akkio_Consume_Helper" then
+    -- Reinitialize buffTracker reference after addon loads
+    initializeBuffTracker()
+    buffTracker = Akkio_Consume_Helper_Settings.buffTracker
+  elseif event == "PLAYER_LOGOUT" then
+    -- Force save buff tracker data on logout
+    if buffTracker then
+      for buffName, data in pairs(buffTracker) do
+        Akkio_Consume_Helper_Settings.buffTracker[buffName] = data
+      end
+    end
   end
 end)

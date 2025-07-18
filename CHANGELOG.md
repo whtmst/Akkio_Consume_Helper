@@ -1,5 +1,56 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.0.3] - 2025-01-18
+
+### Added
+- **Centralized Duration System**: Moved all buff duration data from separate tables to the main data structure in `Akkio_Consume_Helper_Data.allBuffs`
+  - Added duration fields to all consumable buffs (flasks: 7200s, elixirs: 3600s, food: 900s, jujus: 1800s)
+  - Duration values now stored alongside buff data for better maintainability
+  - Simplified duration lookup with direct data table access
+- **New Consumables**: Expanded buff database with additional items
+  - **Dreamshard Elixir**: Added Turtle WoW custom elixir with 2-hour duration (7200s)
+  - **Hardened Mushroom** and **Power Mushroom**: Added custom food items with 15-minute duration (900s)
+- **Extended Weapon Enchant Support**: Added comprehensive weapon enchant tracking
+  - **Brilliant Mana Oil** and **Brilliant Wizard Oil**: Caster weapon enchants
+  - **Blessed Weapon Coating**: Anti-undead weapon enhancement
+  - **Shadowoil**: Shadow damage weapon enchant
+  - **Rogue Poisons**: Deadly Poison and Instant Poison for both weapon slots
+
+### Enhanced
+- **Smart Timer Display**: Timer labels now only appear on buffs that have duration values defined
+  - Class buffs (Power Word: Fortitude, Divine Spirit, etc.) no longer show timer labels
+  - Consumable buffs continue to show countdown timers as expected
+  - Weapon enchants maintain API-based timer displays using `GetWeaponEnchantInfo()`
+- **Weapon Enchant Timer System**: Comprehensive real-time timer tracking for weapon enchants
+  - Added timer labels to weapon enchant icons showing remaining time
+  - Integrated `GetWeaponEnchantInfo()` API for accurate millisecond-precision timing
+  - Real-time updates every second through enhanced `UpdateBuffStatusOnly()` function
+  - Proper milliseconds-to-seconds conversion for display consistency
+- **Enhanced Tooltip System**: Improved tooltip information for all buff types
+  - Weapon enchant tooltips now show precise remaining time using WoW API
+  - Class buff tooltips no longer display timer information (duration-based filtering)
+  - Consumable tooltips continue to show timestamp-based countdown timers
+- **Dual Timer Architecture**: Implemented sophisticated timer system handling different buff types
+  - Timestamp tracking for consumable buffs with manual duration calculations
+  - API-based tracking for weapon enchants using game data
+  - Unified `formatTimeRemaining()` function for consistent time display
+
+### Fixed
+- **Data Structure Consistency**: Eliminated duplicate duration storage across different files
+- **Timer Label Rendering**: Fixed unnecessary timer creation for buffs without duration values
+- **Update Function Optimization**: Enhanced `UpdateBuffStatusOnly()` with proper duration checking
+
+### Refactored
+- **Duration Lookup Function**: Simplified `getBuffDuration()` to use centralized data table instead of separate duration arrays
+- **Timer Update Logic**: Streamlined timer updates to only process buffs with appropriate timer components
+- **Memory Management**: Reduced memory overhead by eliminating redundant duration storage
+
+### Technical
+- **API Integration**: Full integration of `GetWeaponEnchantInfo()` for weapon enchant timing
+- **Data Normalization**: Centralized all duration data in main allBuffs structure for better organization
+- **Conditional Rendering**: Smart timer label creation based on buff duration availability
+- **Performance Optimization**: Reduced function calls and improved data access patterns
+
 ## [1.0.2] - 2025-01-17
 
 ### Fixed
