@@ -177,11 +177,11 @@ local function wipeTable(tbl)
   end
 end
 
-local function findItemInBagAndGetAmmount(itemName)
+local function findItemInBagAndGetAmount(itemName)
   -- Cache bag scan results to avoid repeated scans during the same update cycle
   if not buffStatusFrame then
     -- If buffStatusFrame doesn't exist yet, do a simple scan
-    local totalAmmount = 0
+    local totalAmount = 0
     for bag = 0, 4 do -- 0 = backpack, 1–4 = bags
       local bagSlots = GetContainerNumSlots(bag)
       if bagSlots and bagSlots > 0 then
@@ -199,10 +199,10 @@ local function findItemInBagAndGetAmmount(itemName)
                 if itemCount then
                   if itemCount < 0 then
                     -- Charged item: count represents charges remaining, convert to positive
-                    totalAmmount = totalAmmount + math.abs(itemCount)
+                    totalAmount = totalAmount + math.abs(itemCount)
                   else
                     -- Regular stacked item: count represents stack size
-                    totalAmmount = totalAmmount + itemCount
+                    totalAmount = totalAmount + itemCount
                   end
                 end
               end
@@ -211,7 +211,7 @@ local function findItemInBagAndGetAmmount(itemName)
         end
       end
     end
-    return totalAmmount
+    return totalAmount
   end
   
   if not buffStatusFrame.bagCache then
@@ -317,7 +317,7 @@ local function UpdateBuffStatusOnly()
       
       -- Update item count if it has an amount label
       if icon.amountLabel then
-        local itemAmount = findItemInBagAndGetAmmount(data.name)
+        local itemAmount = findItemInBagAndGetAmount(data.name)
         icon.amountLabel:SetText(itemAmount > 0 and itemAmount or "")
       end
     end
@@ -375,7 +375,7 @@ local function applyWeaponEnchant(itemName, slot)
           if linkItemName == itemName then
             -- Use the item to put it on cursor
             UseContainerItem(bag, bagSlot)
-            
+
             -- Provide clear instructions to the player
             if slot == "mainhand" then
               if GetInventoryItemTexture("player", 16) then
@@ -390,7 +390,7 @@ local function applyWeaponEnchant(itemName, slot)
                 DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo weapon equipped in off hand slot.|r")
               end
             end
-            
+
             return true
           end
         end
@@ -921,7 +921,7 @@ BuildBuffSelectionUI = function()
   buffSelectFrame.scrollframe:SetWidth(max_width - 50)
   buffSelectFrame.scrollframe:SetHeight(max_height - 60)
   buffSelectFrame.scrollframe:SetPoint("TOP", buffSelectFrame, "TOP", 0, -40)
-  
+
   -- Create scroll bar manually for better compatibility
   buffSelectFrame.scrollbar = CreateFrame("Slider", "AkkioBuffScrollBar", buffSelectFrame.scrollframe, "UIPanelScrollBarTemplate")
   buffSelectFrame.scrollbar:SetPoint("TOPLEFT", buffSelectFrame.scrollframe, "TOPRIGHT", 4, -16)
@@ -934,7 +934,7 @@ BuildBuffSelectionUI = function()
   buffSelectFrame.scrollbar:SetScript("OnValueChanged", function()
     buffSelectFrame.scrollframe:SetVerticalScroll(this:GetValue())
   end)
-  
+
   -- Enable mouse wheel scrolling with explicit event handling
   buffSelectFrame.scrollframe:EnableMouseWheel(true)
   buffSelectFrame.scrollframe:SetScript("OnMouseWheel", function()
@@ -942,13 +942,13 @@ BuildBuffSelectionUI = function()
     local step = scrollbar.scrollStep or 20
     local value = scrollbar:GetValue()
     local minVal, maxVal = scrollbar:GetMinMaxValues()
-    
+
     if arg1 > 0 then
       value = math.max(minVal, value - step)
     else
       value = math.min(maxVal, value + step)
     end
-    
+
     scrollbar:SetValue(value)
   end)
 
@@ -1062,7 +1062,7 @@ BuildBuffSelectionUI = function()
 
   local totalHeight = currentYOffset + 20
   content:SetHeight(totalHeight)
-  
+
   -- Update scroll range for our custom scroll bar
   local scrollFrameHeight = buffSelectFrame.scrollframe:GetHeight()
   local maxScroll = math.max(0, totalHeight - scrollFrameHeight)
@@ -1218,7 +1218,7 @@ BuildBuffStatusUI = function()
     iconAmountLabel:SetPoint("BOTTOM", icon, "BOTTOM", 10, 0)
     
     -- Show item amounts for all items, including weapon enchants
-    local itemAmount = findItemInBagAndGetAmmount(data.name)
+    local itemAmount = findItemInBagAndGetAmount(data.name)
     iconAmountLabel:SetText(itemAmount > 0 and itemAmount or "")
     
     -- Store reference for fast updates
@@ -1260,7 +1260,7 @@ BuildBuffStatusUI = function()
           DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Info:|r Your " .. buffdata.slot .. " weapon already has an enchant applied.")
         else
           -- Try to find and use the weapon enchant item
-          if findItemInBagAndGetAmmount(buffdata.name) > 0 then
+          if findItemInBagAndGetAmount(buffdata.name) > 0 then
             applyWeaponEnchant(buffdata.name, buffdata.slot)
           else
             DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6B" .. buffName .. " not found in your bags.|r")
@@ -1284,7 +1284,7 @@ BuildBuffStatusUI = function()
           SendChatMessage("|cffFF6B6BNeed " .. buffName .. "|r", "PARTY")
         end
         --DEFAULT_CHAT_FRAME:AddMessage("I need " .. buffName)
-        if buffdata.canBeAnounced == false and findItemInBagAndGetAmmount(buffdata.name) > 0 then
+        if buffdata.canBeAnounced == false and findItemInBagAndGetAmount(buffdata.name) > 0 then
           findAndUseItemByName(buffName)
         end
       end
@@ -1306,7 +1306,7 @@ BuildBuffStatusUI = function()
       GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
       
       local buffdata = this.buffdata
-      local itemAmount = findItemInBagAndGetAmmount(buffdata.name)
+      local itemAmount = findItemInBagAndGetAmount(buffdata.name)
       
       -- Main title with status color
       if hasBuff then
@@ -1587,7 +1587,7 @@ SlashCmdList["AKKIODEBUG"] = function()
   DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFF=== WEAPON ENCHANTS ===|r")
   DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFMain Hand:|r " .. (hasMainHandEnchant and "|cff00FF00Enchanted|r" or "|cffFF6B6BNot Enchanted|r"))
   DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFOff Hand:|r " .. (hasOffHandEnchant and "|cff00FF00Enchanted|r" or "|cffFF6B6BNot Enchanted|r"))
-  
+
   DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6=== END DEBUG SCAN ===|r")
 end
 
