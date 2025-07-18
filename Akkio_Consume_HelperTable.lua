@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.0.3"
+local ADDON_VERSION = "1.0.4"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -145,6 +145,9 @@ if Akkio_Consume_Helper_Settings.settings.showTooltips == nil then
 end
 if Akkio_Consume_Helper_Settings.settings.hoverToShow == nil then
   Akkio_Consume_Helper_Settings.settings.hoverToShow = false
+end
+if not Akkio_Consume_Helper_Settings.settings.iconSpacing then
+  Akkio_Consume_Helper_Settings.settings.iconSpacing = 32
 end
 -- ============================================================================
 -- GLOBAL VARIABLES
@@ -434,7 +437,11 @@ local function UpdateBuffStatusOnly()
             end
             hasBuff = false
           else
-            -- Timestamp expired naturally
+            -- Timestamp expired naturally - also clear the tracker
+            if buffTracker and buffTracker[data.name] then
+              buffTracker[data.name] = nil
+              Akkio_Consume_Helper_Settings.buffTracker[data.name] = nil
+            end
             hasBuff = false
           end
         end
@@ -677,14 +684,19 @@ BuildSettingsUI = function()
     scaleValueText:SetText(tostring(value))
   end)
 
-  -- Timer Interval Label (positioned on the right side)
+  -- Layout Settings Section (Left side, under scale slider)
+  local layoutLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  layoutLabel:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 20, -200)
+  layoutLabel:SetText("Layout Settings:")
+
+  -- Timer Interval Label
   local timerLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  timerLabel:SetPoint("TOPRIGHT", settingsFrame, "TOPRIGHT", -20, -120)
+  timerLabel:SetPoint("TOPLEFT", layoutLabel, "BOTTOMLEFT", 0, -15)
   timerLabel:SetText("Update Interval (seconds):")
 
-  -- Timer Input Box (positioned on the right side, same Y level as scale slider)
+  -- Timer Input Box
   local timerEditBox = CreateFrame("EditBox", "AkkioTimerEditBox", settingsFrame, "AkkioEditBoxTemplate")
-  timerEditBox:SetPoint("TOPRIGHT", timerLabel, "BOTTOMRIGHT", 0, -10)
+  timerEditBox:SetPoint("TOPLEFT", timerLabel, "BOTTOMLEFT", 0, -10)
   timerEditBox:SetMaxLetters(3)
   -- Use saved timer setting or default to 1
   local savedTimer = 1
@@ -705,14 +717,14 @@ BuildSettingsUI = function()
     end
   end)
 
-  -- Icons Per Row Label (positioned on the right side, below timer)
+  -- Icons Per Row Label
   local iconsPerRowLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  iconsPerRowLabel:SetPoint("TOPRIGHT", settingsFrame, "TOPRIGHT", -20, -190)
-  iconsPerRowLabel:SetText("Icons Per Row:")
+  iconsPerRowLabel:SetPoint("TOPLEFT", timerEditBox, "BOTTOMLEFT", 0, -20)
+  iconsPerRowLabel:SetText("Icons Per Row (1-10):")
 
   -- Icons Per Row Input Box
   local iconsPerRowEditBox = CreateFrame("EditBox", "AkkioIconsPerRowEditBox", settingsFrame, "AkkioEditBoxTemplate")
-  iconsPerRowEditBox:SetPoint("TOPRIGHT", iconsPerRowLabel, "BOTTOMRIGHT", 0, -10)
+  iconsPerRowEditBox:SetPoint("TOPLEFT", iconsPerRowLabel, "BOTTOMLEFT", 0, -10)
   iconsPerRowEditBox:SetMaxLetters(2)
   -- Load saved value or default to 5
   local savedIconsPerRow = "5"
@@ -732,9 +744,63 @@ BuildSettingsUI = function()
     end
   end)
 
-  -- Combat Settings Label
+  -- Icon Spacing Label
+  local iconSpacingLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  iconSpacingLabel:SetPoint("TOPLEFT", iconsPerRowEditBox, "BOTTOMLEFT", 0, -20)
+  iconSpacingLabel:SetText("Icon Spacing (30-64 pixels):")
+
+  -- Icon Spacing Input Box
+  local iconSpacingEditBox = CreateFrame("EditBox", "AkkioIconSpacingEditBox", settingsFrame, "AkkioEditBoxTemplate")
+  iconSpacingEditBox:SetPoint("TOPLEFT", iconSpacingLabel, "BOTTOMLEFT", 0, -10)
+  iconSpacingEditBox:SetMaxLetters(2)
+  -- Load saved value or default to 32
+  local savedIconSpacing = "32"
+  if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.iconSpacing then
+    savedIconSpacing = tostring(Akkio_Consume_Helper_Settings.settings.iconSpacing)
+  end
+  iconSpacingEditBox:SetText(savedIconSpacing)
+  
+  iconSpacingEditBox:SetScript("OnEnterPressed", function()
+    this:ClearFocus()
+    local value = tonumber(this:GetText())
+    if value and value >= 30 and value <= 64 then
+      DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Icon spacing set to:|r " .. value .. " pixels")
+    else
+      this:SetText("32")
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BInvalid value. Must be between 30-64 pixels. Reset to 32.|r")
+    end
+  end)
+
+  -- Display Settings Section (Right side)
+  local displayLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  displayLabel:SetPoint("TOPRIGHT", settingsFrame, "TOPRIGHT", -20, -200)
+  displayLabel:SetText("Display Settings:")
+
+  -- Show Tooltips Checkbox
+  local showTooltipsCheckbox = CreateFrame("CheckButton", "AkkioShowTooltipsCheckbox", settingsFrame, "UICheckButtonTemplate")
+  showTooltipsCheckbox:SetWidth(20)
+  showTooltipsCheckbox:SetHeight(20)
+  showTooltipsCheckbox:SetPoint("TOPRIGHT", displayLabel, "BOTTOMRIGHT", -200, -15)
+  showTooltipsCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.showTooltips)
+
+  local showTooltipsLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  showTooltipsLabel:SetPoint("LEFT", showTooltipsCheckbox, "RIGHT", 5, 0)
+  showTooltipsLabel:SetText("Show detailed tooltips on buff icons")
+
+  -- Hover to Show Checkbox
+  local hoverToShowCheckbox = CreateFrame("CheckButton", "AkkioHoverToShowCheckbox", settingsFrame, "UICheckButtonTemplate")
+  hoverToShowCheckbox:SetWidth(20)
+  hoverToShowCheckbox:SetHeight(20)
+  hoverToShowCheckbox:SetPoint("TOPLEFT", showTooltipsCheckbox, "BOTTOMLEFT", 0, -10)
+  hoverToShowCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.hoverToShow)
+
+  local hoverToShowLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  hoverToShowLabel:SetPoint("LEFT", hoverToShowCheckbox, "RIGHT", 5, 0)
+  hoverToShowLabel:SetText("Show frame only when hovering buff icons")
+
+  -- Combat Settings Section (Left side, bottom)
   local combatLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  combatLabel:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 20, -260)
+  combatLabel:SetPoint("TOPLEFT", iconSpacingEditBox, "BOTTOMLEFT", 0, -40)
   combatLabel:SetText("Combat Settings:")
 
   -- Pause Updates in Combat Checkbox
@@ -759,28 +825,6 @@ BuildSettingsUI = function()
   hideFrameLabel:SetPoint("LEFT", hideFrameCheckbox, "RIGHT", 5, 0)
   hideFrameLabel:SetText("Hide buff status frame during combat")
 
-  -- Show Tooltips Checkbox
-  local showTooltipsCheckbox = CreateFrame("CheckButton", "AkkioShowTooltipsCheckbox", settingsFrame, "UICheckButtonTemplate")
-  showTooltipsCheckbox:SetWidth(20)
-  showTooltipsCheckbox:SetHeight(20)
-  showTooltipsCheckbox:SetPoint("TOPLEFT", hideFrameCheckbox, "BOTTOMLEFT", 0, -10)
-  showTooltipsCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.showTooltips)
-
-  local showTooltipsLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  showTooltipsLabel:SetPoint("LEFT", showTooltipsCheckbox, "RIGHT", 5, 0)
-  showTooltipsLabel:SetText("Show detailed tooltips on buff icons")
-
-  -- Hover to Show Checkbox
-  local hoverToShowCheckbox = CreateFrame("CheckButton", "AkkioHoverToShowCheckbox", settingsFrame, "UICheckButtonTemplate")
-  hoverToShowCheckbox:SetWidth(20)
-  hoverToShowCheckbox:SetHeight(20)
-  hoverToShowCheckbox:SetPoint("TOPLEFT", showTooltipsCheckbox, "BOTTOMLEFT", 0, -10)
-  hoverToShowCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.hoverToShow)
-
-  local hoverToShowLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  hoverToShowLabel:SetPoint("LEFT", hoverToShowCheckbox, "RIGHT", 5, 0)
-  hoverToShowLabel:SetText("Show frame only when hovering buff icons")
-
   -- Apply Button
   local applyButton = CreateFrame("Button", nil, settingsFrame, "UIPanelButtonTemplate")
   applyButton:SetWidth(80)
@@ -792,6 +836,7 @@ BuildSettingsUI = function()
     local scaleValue = scaleSlider:GetValue()
     local timerValue = tonumber(timerEditBox:GetText()) or 1
     local iconsPerRowValue = tonumber(iconsPerRowEditBox:GetText()) or 5
+    local iconSpacingValue = tonumber(iconSpacingEditBox:GetText()) or 32
     local pauseUpdatesValue = pauseUpdatesCheckbox:GetChecked() == 1
     local hideFrameValue = hideFrameCheckbox:GetChecked() == 1
     local showTooltipsValue = showTooltipsCheckbox:GetChecked() == 1
@@ -809,6 +854,12 @@ BuildSettingsUI = function()
       iconsPerRowEditBox:SetText("5")
     end
     
+    -- Validate icon spacing value
+    if iconSpacingValue < 30 or iconSpacingValue > 64 then
+      iconSpacingValue = 32
+      iconSpacingEditBox:SetText("32")
+    end
+    
     -- Update global variable
     updateTimer = timerValue
     
@@ -816,6 +867,7 @@ BuildSettingsUI = function()
     Akkio_Consume_Helper_Settings.settings.scale = scaleValue
     Akkio_Consume_Helper_Settings.settings.updateTimer = timerValue
     Akkio_Consume_Helper_Settings.settings.iconsPerRow = iconsPerRowValue
+    Akkio_Consume_Helper_Settings.settings.iconSpacing = iconSpacingValue
     Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat = pauseUpdatesValue
     Akkio_Consume_Helper_Settings.settings.hideFrameInCombat = hideFrameValue
     Akkio_Consume_Helper_Settings.settings.showTooltips = showTooltipsValue
@@ -828,8 +880,8 @@ BuildSettingsUI = function()
         buffStatusFrame.hoverCount = 0 -- Reset hover count FIRST
         -- Force immediate hide by rebuilding the UI which will respect the new setting
         BuildBuffStatusUI()
-        -- THEN set alpha to ensure it's hidden after the rebuild
-        buffStatusFrame:SetAlpha(0.0) -- Make it completely transparent
+        -- THEN set alpha to completely hide the frame
+        buffStatusFrame:SetAlpha(0.0) -- Completely transparent
       else
         buffStatusFrame:SetAlpha(1.0) -- Make it fully visible
         -- Force refresh to apply new settings efficiently
@@ -838,7 +890,7 @@ BuildSettingsUI = function()
     end
     
     DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio Consume Helper:|r Settings applied successfully!")
-    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Scale:|r " .. tostring(scaleValue) .. " |cffFFFF00Timer:|r " .. timerValue .. "s |cffFFFF00Icons per row:|r " .. iconsPerRowValue)
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Scale:|r " .. tostring(scaleValue) .. " |cffFFFF00Timer:|r " .. timerValue .. "s |cffFFFF00Icons per row:|r " .. iconsPerRowValue .. " |cffFFFF00Icon spacing:|r " .. iconSpacingValue .. "px")
   end)
 
   -- Reset value button
@@ -853,6 +905,7 @@ BuildSettingsUI = function()
     scaleValueText:SetText("1.0")
     timerEditBox:SetText("1")
     iconsPerRowEditBox:SetText("5")
+    iconSpacingEditBox:SetText("32")
     pauseUpdatesCheckbox:SetChecked(true)
     hideFrameCheckbox:SetChecked(false)
     showTooltipsCheckbox:SetChecked(true)
@@ -862,6 +915,7 @@ BuildSettingsUI = function()
     Akkio_Consume_Helper_Settings.settings.scale = 1.0
     Akkio_Consume_Helper_Settings.settings.updateTimer = 1
     Akkio_Consume_Helper_Settings.settings.iconsPerRow = 5
+    Akkio_Consume_Helper_Settings.settings.iconSpacing = 32
     Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat = true
     Akkio_Consume_Helper_Settings.settings.hideFrameInCombat = false
     Akkio_Consume_Helper_Settings.settings.showTooltips = true
@@ -1263,10 +1317,25 @@ BuildBuffStatusUI = function()
     end
   end
 
+  -- Calculate frame dimensions based on enabled buffs and icons per row
+  local iconsPerRow = 5
+  if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.iconsPerRow then
+    iconsPerRow = Akkio_Consume_Helper_Settings.settings.iconsPerRow
+  end
+  
+  -- Get icon spacing setting
+  local iconSpacing = 32
+  if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.iconSpacing then
+    iconSpacing = Akkio_Consume_Helper_Settings.settings.iconSpacing
+  end
+  
+  local numIcons = table.getn(enabledBuffsList)
+  local numRows = math.ceil(numIcons / iconsPerRow)
+  local frameWidth = math.min(numIcons, iconsPerRow) * iconSpacing + 20 -- spacing per icon + padding
+  local frameHeight = numRows * iconSpacing + 40 -- spacing per row + title space + padding
+
   if not buffStatusFrame then
     buffStatusFrame = CreateFrame("Frame", "BuffStatusFrame", UIParent)
-    buffStatusFrame:SetWidth(250)
-    buffStatusFrame:SetHeight(400)
     buffStatusFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 32)
     -- Use saved scale setting or default to 1.0
     local scale = 1.0
@@ -1280,6 +1349,28 @@ BuildBuffStatusUI = function()
     buffStatusFrame:SetScript("OnDragStart", function() buffStatusFrame:StartMoving() end)
     buffStatusFrame:SetScript("OnDragStop", function() buffStatusFrame:StopMovingOrSizing() end)
 
+    -- Add hover handlers to the frame itself for hover-to-show functionality
+    buffStatusFrame:SetScript("OnEnter", function()
+      if Akkio_Consume_Helper_Settings.settings.hoverToShow then
+        buffStatusFrame.hoverCount = (buffStatusFrame.hoverCount or 0) + 1
+        -- Cancel any pending hide timer
+        if buffStatusFrame.hideTimer then
+          buffStatusFrame.hideTimer = nil
+        end
+        buffStatusFrame:SetAlpha(1.0) -- Make frame fully visible when hovering frame area
+      end
+    end)
+    
+    buffStatusFrame:SetScript("OnLeave", function()
+      if Akkio_Consume_Helper_Settings.settings.hoverToShow then
+        buffStatusFrame.hoverCount = math.max(0, (buffStatusFrame.hoverCount or 1) - 1)
+        if buffStatusFrame.hoverCount <= 0 then
+          -- Set a timer to hide after a short delay
+          buffStatusFrame.hideTimer = GetTime() + 0.1 -- Hide after 100ms
+        end
+      end
+    end)
+
     -- Set initial alpha based on hover-to-show setting
     if Akkio_Consume_Helper_Settings.settings.hoverToShow then
       buffStatusFrame:SetAlpha(0.0) -- Start completely transparent
@@ -1288,14 +1379,27 @@ BuildBuffStatusUI = function()
       buffStatusFrame:SetAlpha(1.0) -- Start fully visible
     end
 
+    -- Create a subtle background that's always visible (helps users see the frame area)
     local bg = buffStatusFrame:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
-    bg:SetTexture(0, 0, 0, 0.0)
+    bg:SetTexture("Interface\\Tooltips\\UI-Tooltip-Background")
+    bg:SetVertexColor(0.1, 0.1, 0.1, 0.3) -- Dark with low alpha
+    buffStatusFrame.bg = bg
 
-    local title = buffStatusFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    title:SetPoint("TOP", 0, -10)
-    title:SetText("Buff Status")
-    title:Hide()
+    -- Create title bar that's always visible 
+    local titleBar = buffStatusFrame:CreateTexture(nil, "BORDER")
+    titleBar:SetHeight(18)
+    titleBar:SetPoint("TOPLEFT", buffStatusFrame, "TOPLEFT", 2, -2)
+    titleBar:SetPoint("TOPRIGHT", buffStatusFrame, "TOPRIGHT", -2, -2)
+    titleBar:SetTexture("Interface\\Tooltips\\UI-Tooltip-Background")
+    titleBar:SetVertexColor(0.2, 0.4, 0.6, 0.7) -- Blue-ish with higher alpha
+    buffStatusFrame.titleBar = titleBar
+
+    local title = buffStatusFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    title:SetPoint("TOP", buffStatusFrame, "TOP", 0, -8)
+    title:SetText("Buffs")
+    title:SetTextColor(1, 1, 1, 1) -- White text
+    buffStatusFrame.title = title
     buffStatusFrame.children = {} -- Create a table to track children
   else
     -- Clean up old children
@@ -1310,6 +1414,10 @@ BuildBuffStatusUI = function()
       wipeTable(buffStatusFrame.children)
     end
     
+    -- Update frame size based on current enabled buffs
+    buffStatusFrame:SetWidth(frameWidth)
+    buffStatusFrame:SetHeight(frameHeight)
+    
     -- Preserve alpha state during rebuild for hover-to-show
     if Akkio_Consume_Helper_Settings.settings.hoverToShow then
       -- Initialize hover tracking if it doesn't exist
@@ -1317,20 +1425,24 @@ BuildBuffStatusUI = function()
         buffStatusFrame.hoverCount = 0
       end
       
-      -- Keep frame hidden unless being hovered
+      -- Keep frame completely hidden when not hovering
       if buffStatusFrame.hoverCount > 0 then
-        buffStatusFrame:SetAlpha(1.0) -- Keep visible while hovering
+        buffStatusFrame:SetAlpha(1.0) -- Keep fully visible while hovering
       else
-        buffStatusFrame:SetAlpha(0.0) -- Stay hidden when not hovering
+        buffStatusFrame:SetAlpha(0.0) -- Completely hidden when not hovering
       end
     else
-      -- Normal mode - always visible
+      -- Normal mode - always fully visible
       buffStatusFrame:SetAlpha(1.0)
     end
   end
 
-  local xOffset = 30
-  local yOffset = -30
+  -- Set the final frame dimensions
+  buffStatusFrame:SetWidth(frameWidth)
+  buffStatusFrame:SetHeight(frameHeight)
+
+  local xOffset = 10 -- Start closer to the edge for compact layout
+  local yOffset = -22 -- Start below the title bar with 2px padding
   
   -- Get icons per row setting, default to 5 if not set
   local iconsPerRow = 5
@@ -1338,8 +1450,14 @@ BuildBuffStatusUI = function()
     iconsPerRow = Akkio_Consume_Helper_Settings.settings.iconsPerRow
   end
   
-  -- Calculate the maximum xOffset based on icons per row (30 pixels per icon + starting offset)
-  local maxXOffset = 30 + (iconsPerRow - 1) * 30
+  -- Get icon spacing setting
+  local iconSpacing = 32
+  if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.iconSpacing then
+    iconSpacing = Akkio_Consume_Helper_Settings.settings.iconSpacing
+  end
+  
+  local currentRow = 0
+  local currentCol = 0
   
   for _, data in ipairs(enabledBuffsList) do
     local hasBuff = false
@@ -1362,7 +1480,7 @@ BuildBuffStatusUI = function()
     local icon = CreateFrame("Button", nil, buffStatusFrame, "UIPanelButtonTemplate")
     icon:SetWidth(30)
     icon:SetHeight(30)
-    icon:SetPoint("TOP", xOffset, yOffset)
+    icon:SetPoint("TOPLEFT", buffStatusFrame, "TOPLEFT", xOffset, yOffset)
 
     local iconTexture = icon:CreateTexture(nil, "ARTWORK")
     iconTexture:SetAllPoints()
@@ -1390,7 +1508,7 @@ BuildBuffStatusUI = function()
     -- Add timer label for normal buffs (not weapon enchants) and only if they have a duration
     if not data.isWeaponEnchant and data.duration then
       local timerLabel = icon:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-      timerLabel:SetPoint("TOP", icon, "TOP", 0, -2)
+      timerLabel:SetPoint("TOP", icon, "TOP", 0, -8)
       timerLabel:SetTextColor(1, 1, 1, 1) -- White text for visibility
       
       -- Show remaining time if buff is tracked
@@ -1410,7 +1528,7 @@ BuildBuffStatusUI = function()
       
       -- Add timer label for weapon enchants using GetWeaponEnchantInfo
       local timerLabel = icon:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-      timerLabel:SetPoint("BOTTOM", icon, "BOTTOM", 0, 2)
+      timerLabel:SetPoint("BOTTOM", icon, "BOTTOM", 0, 8)
       timerLabel:SetTextColor(1, 1, 1, 1) -- White text for visibility
       
       -- Get initial weapon enchant time
@@ -1514,6 +1632,10 @@ BuildBuffStatusUI = function()
       -- Apply hover-to-show functionality first
       if Akkio_Consume_Helper_Settings.settings.hoverToShow then
         buffStatusFrame.hoverCount = (buffStatusFrame.hoverCount or 0) + 1
+        -- Cancel any pending hide timer
+        if buffStatusFrame.hideTimer then
+          buffStatusFrame.hideTimer = nil
+        end
         buffStatusFrame:SetAlpha(1.0) -- Make frame fully visible when hovering any icon
       end
       
@@ -1630,7 +1752,9 @@ BuildBuffStatusUI = function()
       if Akkio_Consume_Helper_Settings.settings.hoverToShow then
         buffStatusFrame.hoverCount = math.max(0, (buffStatusFrame.hoverCount or 1) - 1)
         if buffStatusFrame.hoverCount <= 0 then
-          buffStatusFrame:SetAlpha(0.0) -- Make frame completely transparent when not hovering any icon
+          -- Don't hide immediately - set a timer to hide after a short delay
+          -- This prevents flickering when moving between icons
+          buffStatusFrame.hideTimer = GetTime() + 0.1 -- Hide after 100ms
         end
       end
       
@@ -1645,10 +1769,14 @@ BuildBuffStatusUI = function()
     table.insert(buffStatusFrame.children, label)
 
     -- Positioning logic for configurable icons per row
-    xOffset = xOffset + 30
-    if xOffset > maxXOffset then
-      yOffset = yOffset - 30
-      xOffset = 30
+    currentCol = currentCol + 1
+    if currentCol >= iconsPerRow then
+      currentCol = 0
+      currentRow = currentRow + 1
+      xOffset = 10
+      yOffset = yOffset - iconSpacing
+    else
+      xOffset = xOffset + iconSpacing
     end
   end
 
@@ -1657,9 +1785,35 @@ BuildBuffStatusUI = function()
     buffStatusFrame.ticker = CreateFrame("Frame")
     buffStatusFrame.ticker.lastUpdate = GetTime()
     buffStatusFrame.ticker.lastFullUpdate = GetTime()
+    buffStatusFrame.ticker.lastCleanup = GetTime() -- Add cleanup timer
     buffStatusFrame.ticker:SetScript("OnUpdate", function()
       local now = GetTime()
-      if (now - this.lastUpdate) > updateTimer then
+      
+      -- Check for delayed hide timer (for hover-to-show functionality)
+      if buffStatusFrame.hideTimer and now >= buffStatusFrame.hideTimer then
+        if Akkio_Consume_Helper_Settings.settings.hoverToShow and 
+           (not buffStatusFrame.hoverCount or buffStatusFrame.hoverCount <= 0) then
+          buffStatusFrame:SetAlpha(0.0) -- Hide the frame
+        end
+        buffStatusFrame.hideTimer = nil -- Clear the timer
+      end
+      
+      -- Periodic cleanup of expired buff tracker entries (every 30 seconds)
+      if (now - buffStatusFrame.ticker.lastCleanup) > 30 then
+        if buffTracker and Akkio_Consume_Helper_Settings.buffTracker then
+          for buffName, tracker in pairs(buffTracker) do
+            local elapsedTime = now - tracker.startTime
+            if elapsedTime >= tracker.duration then
+              -- Remove expired entries
+              buffTracker[buffName] = nil
+              Akkio_Consume_Helper_Settings.buffTracker[buffName] = nil
+            end
+          end
+        end
+        buffStatusFrame.ticker.lastCleanup = now
+      end
+      
+      if (now - buffStatusFrame.ticker.lastUpdate) > updateTimer then
         -- Only do a quick update of buff status, not full UI rebuild
         UpdateBuffStatusOnly()
         this.lastUpdate = now
@@ -1929,20 +2083,20 @@ local function OnLeavingCombat()
     buffStatusFrame.ticker.lastFullUpdate = GetTime() -- Reset full update timer too
     buffStatusFrame.ticker:SetScript("OnUpdate", function()
       local now = GetTime()
-      if (now - this.lastUpdate) > updateTimer then
+      if (now - buffStatusFrame.ticker.lastUpdate) > updateTimer then
         -- Only do a quick update of buff status, not full UI rebuild
         UpdateBuffStatusOnly()
-        this.lastUpdate = now
+        buffStatusFrame.ticker.lastUpdate = now
         
         -- Full UI rebuild only every 10 seconds or when settings change
         -- BUT skip automatic rebuilds when hover-to-show is enabled to prevent unwanted visibility
-        if (now - this.lastFullUpdate) > 10 then
+        if (now - buffStatusFrame.ticker.lastFullUpdate) > 10 then
           -- Only do automatic rebuilds if hover-to-show is disabled OR if someone is currently hovering
           if not Akkio_Consume_Helper_Settings.settings.hoverToShow or 
              (buffStatusFrame.hoverCount and buffStatusFrame.hoverCount > 0) then
             BuildBuffStatusUI()
           end
-          this.lastFullUpdate = now
+          buffStatusFrame.ticker.lastFullUpdate = now
         end
       end
     end)

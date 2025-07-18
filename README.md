@@ -1,6 +1,6 @@
 # Akkio's Consume Helper
 
-**Version 1.0.3** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
+**Version 1.0.4** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
 
 ## Features
 
@@ -8,7 +8,8 @@
 - Visual tracking of buffs, debuffs, and consumables
 - Color-coded status indicators (icon color = active, red = missing)
 - Real-time item count display from your bags
-- Configurable icons per row layout
+- Configurable icons per row layout (1-10 icons)
+- **Flexible Icon Spacing**: Adjustable from 30-64 pixels (30px = border-to-border placement)
 - Automatic countdown timers for consumables with duration tracking
 
 ⚔️ **Weapon Enchant Support**
@@ -18,19 +19,27 @@
 - Smart detection of equipped weapons
 - **Real-time Timer Tracking**: Live countdown using WoW API for precise timing
 
-🎮 **User-Friendly Interface**
-- Drag-and-drop movable frames
+🎮 **Enhanced User Interface**
+- **Reorganized Settings Panel**: Balanced left/right layout with logical grouping
+  - Layout Settings (left): Scale, intervals, rows, spacing
+  - Display Settings (right): Tooltips, hover functionality
+  - Combat Settings (left): Combat-specific options
+- Drag-and-drop movable frames with improved visual spacing
 - Scalable UI (0.5x to 2.0x)
 - Draggable minimap button - position anywhere around minimap
 - Persistent button positioning (saves between sessions)
-- Intuitive settings panel with live preview
+- **Improved Timer Positioning**: Better readable placement away from icon edges
 - Comprehensive tooltips showing buff status, item counts, and action hints
 
 ⚡ **Performance Optimized**
+- **Enhanced Buff Tracker System**: Multi-layered cleanup preventing memory leaks
+  - Immediate cleanup on buff expiration
+  - Periodic maintenance every 30 seconds
+  - Prevents stale timer display issues
 - Smart caching system for bag scanning
 - Efficient update cycles with background optimization
 - Combat-aware performance modes
-- Minimal memory footprint
+- Minimal memory footprint with automatic cleanup
 - Automatic settings migration for updates
 - Data corruption recovery systems
 
@@ -72,7 +81,11 @@ Use the buff selection window to choose which buffs, consumables, and weapon enc
 - **UI Scale**: Adjust the size of buff status icons (0.5x - 2.0x)
 - **Update Interval**: Control refresh rate (1-60 seconds)
 - **Icons Per Row**: Customize layout (1-10 icons per row)
+- **Icon Spacing**: Precise spacing control (30-64 pixels)
+  - 30px = Border-to-border icon placement
+  - Higher values create more spread-out layouts
 - **Show Tooltips**: Enable/disable detailed tooltips on buff icons
+- **Hover to Show**: Make frame visible only when hovering over it
 - **Combat Settings**: Hide UI or pause updates during combat
 
 ## Usage

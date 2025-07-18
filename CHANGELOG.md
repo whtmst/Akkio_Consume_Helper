@@ -1,5 +1,44 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.0.4] - 2025-01-18
+
+### Enhanced
+- **Icon Spacing Configuration**: Improved icon layout customization
+  - Reduced minimum icon spacing from 20 to 30 pixels for border-to-border icon placement
+  - Updated icon spacing range to 30-64 pixels with clear label indication
+  - Enhanced validation to ensure proper spacing values within acceptable range
+- **Settings UI Reorganization**: Complete overhaul of settings interface layout
+  - **Balanced Layout**: Reorganized from unbalanced right-heavy layout to balanced left/right sections
+  - **Layout Settings** (Left): Scale slider, update interval, icons per row, icon spacing
+  - **Display Settings** (Right): Tooltips, hover-to-show functionality
+  - **Combat Settings** (Left Bottom): Combat-specific options logically grouped
+  - Improved visual organization and user experience
+- **Visual Polish**: Enhanced spacing and padding throughout the UI
+  - Added 2px padding between "Buffs" title and icon grid for better visual separation
+  - Improved timer positioning: moved from very top/bottom edges to more readable positions
+  - Normal buff timers positioned 8px from top edge
+  - Weapon enchant timers positioned 8px from bottom edge for better slot indicator separation
+- **Buff Tracker System**: Comprehensive cleanup and maintenance improvements
+  - **Immediate Cleanup**: Enhanced natural buff expiration cleanup in `UpdateBuffStatusOnly()`
+  - **Periodic Maintenance**: Added 30-second cleanup cycle to remove any stale tracker entries
+  - **Memory Management**: Prevents accumulation of expired buff data in saved variables
+  - **Timer Display Fix**: Resolved issue where timers wouldn't show after reapplying expired buffs
+
+### Fixed
+- **Buff Timer Display**: Fixed critical bug where buff timers wouldn't display correctly after reapplying buffs
+  - Root cause: Stale entries in `buffTracker` and `Akkio_Consume_Helper_Settings.buffTracker`
+  - Solution: Multi-layered cleanup system for manual removal, natural expiration, and periodic maintenance
+- **Icon Spacing Validation**: Fixed validation ranges and error messages to match new 30-64 pixel range
+- **Settings Layout**: Resolved unbalanced UI layout with proper left/right content distribution
+
+### Technical
+- **Cleanup Architecture**: Implemented three-tier buff tracker cleanup system
+  1. Manual removal cleanup (when buffs are cancelled)
+  2. Natural expiration cleanup (during update cycles)
+  3. Periodic maintenance cleanup (every 30 seconds)
+- **Frame Reference Fixes**: Corrected `this` references in ticker OnUpdate functions to use proper frame references
+- **Data Consistency**: Enhanced buff tracker data consistency between active and persistent storage
+
 ## [1.0.3] - 2025-01-18
 
 ### Added
