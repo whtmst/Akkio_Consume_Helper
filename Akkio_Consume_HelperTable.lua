@@ -771,33 +771,6 @@ BuildSettingsUI = function()
     end
   end)
 
-  -- Display Settings Section (Right side)
-  local displayLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  displayLabel:SetPoint("TOPRIGHT", settingsFrame, "TOPRIGHT", -20, -200)
-  displayLabel:SetText("Display Settings:")
-
-  -- Show Tooltips Checkbox
-  local showTooltipsCheckbox = CreateFrame("CheckButton", "AkkioShowTooltipsCheckbox", settingsFrame, "UICheckButtonTemplate")
-  showTooltipsCheckbox:SetWidth(20)
-  showTooltipsCheckbox:SetHeight(20)
-  showTooltipsCheckbox:SetPoint("TOPRIGHT", displayLabel, "BOTTOMRIGHT", -200, -15)
-  showTooltipsCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.showTooltips)
-
-  local showTooltipsLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  showTooltipsLabel:SetPoint("LEFT", showTooltipsCheckbox, "RIGHT", 5, 0)
-  showTooltipsLabel:SetText("Show detailed tooltips on buff icons")
-
-  -- Hover to Show Checkbox
-  local hoverToShowCheckbox = CreateFrame("CheckButton", "AkkioHoverToShowCheckbox", settingsFrame, "UICheckButtonTemplate")
-  hoverToShowCheckbox:SetWidth(20)
-  hoverToShowCheckbox:SetHeight(20)
-  hoverToShowCheckbox:SetPoint("TOPLEFT", showTooltipsCheckbox, "BOTTOMLEFT", 0, -10)
-  hoverToShowCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.hoverToShow)
-
-  local hoverToShowLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  hoverToShowLabel:SetPoint("LEFT", hoverToShowCheckbox, "RIGHT", 5, 0)
-  hoverToShowLabel:SetText("Show frame only when hovering buff icons")
-
   -- Combat Settings Section (Left side, bottom)
   local combatLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   combatLabel:SetPoint("TOPLEFT", iconSpacingEditBox, "BOTTOMLEFT", 0, -40)
@@ -825,6 +798,44 @@ BuildSettingsUI = function()
   hideFrameLabel:SetPoint("LEFT", hideFrameCheckbox, "RIGHT", 5, 0)
   hideFrameLabel:SetText("Hide buff status frame during combat")
 
+  -- Display Settings Section (Below combat settings)
+  local displayLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  displayLabel:SetPoint("TOPLEFT", hideFrameCheckbox, "BOTTOMLEFT", 0, -40)
+  displayLabel:SetText("Display Settings:")
+
+  -- Show Tooltips Checkbox
+  local showTooltipsCheckbox = CreateFrame("CheckButton", "AkkioShowTooltipsCheckbox", settingsFrame, "UICheckButtonTemplate")
+  showTooltipsCheckbox:SetWidth(20)
+  showTooltipsCheckbox:SetHeight(20)
+  showTooltipsCheckbox:SetPoint("TOPLEFT", displayLabel, "BOTTOMLEFT", 0, -15)
+  showTooltipsCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.showTooltips)
+
+  local showTooltipsLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  showTooltipsLabel:SetPoint("LEFT", showTooltipsCheckbox, "RIGHT", 5, 0)
+  showTooltipsLabel:SetText("Show detailed tooltips on buff icons")
+
+  -- Hover to Show Checkbox
+  local hoverToShowCheckbox = CreateFrame("CheckButton", "AkkioHoverToShowCheckbox", settingsFrame, "UICheckButtonTemplate")
+  hoverToShowCheckbox:SetWidth(20)
+  hoverToShowCheckbox:SetHeight(20)
+  hoverToShowCheckbox:SetPoint("TOPLEFT", showTooltipsCheckbox, "BOTTOMLEFT", 0, -10)
+  hoverToShowCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.hoverToShow)
+
+  local hoverToShowLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  hoverToShowLabel:SetPoint("LEFT", hoverToShowCheckbox, "RIGHT", 5, 0)
+  hoverToShowLabel:SetText("Show frame only when hovering buff icons")
+
+  -- Lock Frame Checkbox
+  local lockFrameCheckbox = CreateFrame("CheckButton", "AkkioLockFrameCheckbox", settingsFrame, "UICheckButtonTemplate")
+  lockFrameCheckbox:SetWidth(20)
+  lockFrameCheckbox:SetHeight(20)
+  lockFrameCheckbox:SetPoint("TOPLEFT", hoverToShowCheckbox, "BOTTOMLEFT", 0, -10)
+  lockFrameCheckbox:SetChecked(Akkio_Consume_Helper_Settings.settings.lockFrame or false)
+
+  local lockFrameLabel = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  lockFrameLabel:SetPoint("LEFT", lockFrameCheckbox, "RIGHT", 5, 0)
+  lockFrameLabel:SetText("Lock frame (hide background, prevent dragging)")
+
   -- Apply Button
   local applyButton = CreateFrame("Button", nil, settingsFrame, "UIPanelButtonTemplate")
   applyButton:SetWidth(80)
@@ -841,6 +852,7 @@ BuildSettingsUI = function()
     local hideFrameValue = hideFrameCheckbox:GetChecked() == 1
     local showTooltipsValue = showTooltipsCheckbox:GetChecked() == 1
     local hoverToShowValue = hoverToShowCheckbox:GetChecked() == 1
+    local lockFrameValue = lockFrameCheckbox:GetChecked() == 1
     
     -- Validate timer value
     if timerValue < 1 or timerValue > 60 then
@@ -872,9 +884,26 @@ BuildSettingsUI = function()
     Akkio_Consume_Helper_Settings.settings.hideFrameInCombat = hideFrameValue
     Akkio_Consume_Helper_Settings.settings.showTooltips = showTooltipsValue
     Akkio_Consume_Helper_Settings.settings.hoverToShow = hoverToShowValue
+    Akkio_Consume_Helper_Settings.settings.lockFrame = lockFrameValue
     
     if buffStatusFrame then
       buffStatusFrame:SetScale(scaleValue)
+      
+      -- Apply lock frame setting immediately
+      if lockFrameValue then
+        buffStatusFrame:SetMovable(false)
+        buffStatusFrame:RegisterForDrag()
+        if buffStatusFrame.bg then buffStatusFrame.bg:Hide() end
+        if buffStatusFrame.titleBar then buffStatusFrame.titleBar:Hide() end
+        if buffStatusFrame.title then buffStatusFrame.title:Hide() end
+      else
+        buffStatusFrame:SetMovable(true)
+        buffStatusFrame:RegisterForDrag("LeftButton")
+        if buffStatusFrame.bg then buffStatusFrame.bg:Show() end
+        if buffStatusFrame.titleBar then buffStatusFrame.titleBar:Show() end
+        if buffStatusFrame.title then buffStatusFrame.title:Show() end
+      end
+      
       -- Apply hover-to-show setting immediately
       if hoverToShowValue then
         buffStatusFrame.hoverCount = 0 -- Reset hover count FIRST
@@ -910,6 +939,7 @@ BuildSettingsUI = function()
     hideFrameCheckbox:SetChecked(false)
     showTooltipsCheckbox:SetChecked(true)
     hoverToShowCheckbox:SetChecked(false)
+    lockFrameCheckbox:SetChecked(false)
     
     -- Reset saved settings to defaults
     Akkio_Consume_Helper_Settings.settings.scale = 1.0
@@ -920,6 +950,7 @@ BuildSettingsUI = function()
     Akkio_Consume_Helper_Settings.settings.hideFrameInCombat = false
     Akkio_Consume_Helper_Settings.settings.showTooltips = true
     Akkio_Consume_Helper_Settings.settings.hoverToShow = false
+    Akkio_Consume_Helper_Settings.settings.lockFrame = false
     
     -- Update global variable
     updateTimer = 1
@@ -928,6 +959,12 @@ BuildSettingsUI = function()
     if buffStatusFrame then
       buffStatusFrame:SetScale(1.0)
       buffStatusFrame:SetAlpha(1.0) -- Make sure it's fully visible
+      -- Reset lock frame to unlocked
+      buffStatusFrame:SetMovable(true)
+      buffStatusFrame:RegisterForDrag("LeftButton")
+      if buffStatusFrame.bg then buffStatusFrame.bg:Show() end
+      if buffStatusFrame.titleBar then buffStatusFrame.titleBar:Show() end
+      if buffStatusFrame.title then buffStatusFrame.title:Show() end
       ForceRefreshBuffStatus()
     end
     
@@ -1401,6 +1438,22 @@ BuildBuffStatusUI = function()
     title:SetTextColor(1, 1, 1, 1) -- White text
     buffStatusFrame.title = title
     buffStatusFrame.children = {} -- Create a table to track children
+    
+    -- Apply initial lock frame setting
+    local lockFrame = Akkio_Consume_Helper_Settings.settings.lockFrame or false
+    if lockFrame then
+      buffStatusFrame:SetMovable(false)
+      buffStatusFrame:RegisterForDrag()
+      if buffStatusFrame.bg then buffStatusFrame.bg:Hide() end
+      if buffStatusFrame.titleBar then buffStatusFrame.titleBar:Hide() end
+      if buffStatusFrame.title then buffStatusFrame.title:Hide() end
+    else
+      buffStatusFrame:SetMovable(true)
+      buffStatusFrame:RegisterForDrag("LeftButton")
+      if buffStatusFrame.bg then buffStatusFrame.bg:Show() end
+      if buffStatusFrame.titleBar then buffStatusFrame.titleBar:Show() end
+      if buffStatusFrame.title then buffStatusFrame.title:Show() end
+    end
   else
     -- Clean up old children
     if buffStatusFrame.children then
@@ -1434,6 +1487,22 @@ BuildBuffStatusUI = function()
     else
       -- Normal mode - always fully visible
       buffStatusFrame:SetAlpha(1.0)
+    end
+    
+    -- Apply lock frame setting during rebuild
+    local lockFrame = Akkio_Consume_Helper_Settings.settings.lockFrame or false
+    if lockFrame then
+      buffStatusFrame:SetMovable(false)
+      buffStatusFrame:RegisterForDrag()
+      if buffStatusFrame.bg then buffStatusFrame.bg:Hide() end
+      if buffStatusFrame.titleBar then buffStatusFrame.titleBar:Hide() end
+      if buffStatusFrame.title then buffStatusFrame.title:Hide() end
+    else
+      buffStatusFrame:SetMovable(true)
+      buffStatusFrame:RegisterForDrag("LeftButton")
+      if buffStatusFrame.bg then buffStatusFrame.bg:Show() end
+      if buffStatusFrame.titleBar then buffStatusFrame.titleBar:Show() end
+      if buffStatusFrame.title then buffStatusFrame.title:Show() end
     end
   end
 

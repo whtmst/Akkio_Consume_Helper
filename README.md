@@ -78,15 +78,24 @@ Use the buff selection window to choose which buffs, consumables, and weapon enc
 - **Custom Categories**: Organized by buff type for easy selection
 
 ### Settings Options
+The settings interface is organized into logical sections for easy navigation:
+
+**Layout Settings**
 - **UI Scale**: Adjust the size of buff status icons (0.5x - 2.0x)
 - **Update Interval**: Control refresh rate (1-60 seconds)
 - **Icons Per Row**: Customize layout (1-10 icons per row)
 - **Icon Spacing**: Precise spacing control (30-64 pixels)
   - 30px = Border-to-border icon placement
   - Higher values create more spread-out layouts
+
+**Combat Settings**
+- **Pause Updates**: Stop UI updates during combat for performance
+- **Hide Frame**: Completely hide buff status frame during combat
+
+**Display Settings**
 - **Show Tooltips**: Enable/disable detailed tooltips on buff icons
 - **Hover to Show**: Make frame visible only when hovering over it
-- **Combat Settings**: Hide UI or pause updates during combat
+- **Lock Frame**: Hide background and prevent dragging for minimal UI
 
 ## Usage
 
@@ -145,6 +154,35 @@ For issues, suggestions, or contributions:
 - Feature requests welcome
 
 ## Changelog
+
+### Version 1.0.4 - 2025-01-18
+**Enhanced UI Layout & Configuration**
+- **Enhanced**: Icon Spacing Configuration - Improved icon layout customization
+  - Reduced minimum icon spacing from 20 to 30 pixels for border-to-border icon placement
+  - Updated icon spacing range to 30-64 pixels with clear label indication
+  - Enhanced validation to ensure proper spacing values within acceptable range
+- **Enhanced**: Settings UI Reorganization - Complete overhaul of settings interface layout
+  - **Streamlined Layout**: Reorganized from scattered right-side layout to clean left-column organization
+  - **Layout Settings** (Left): Scale slider, update interval, icons per row, icon spacing
+  - **Combat Settings** (Left): Combat-specific options logically grouped below layout settings
+  - **Display Settings** (Left): Tooltips, hover-to-show, lock frame features organized below combat settings
+  - **Future-Ready**: Right side now available for expansion of additional settings categories
+  - Improved visual organization and user experience with logical grouping flow
+- **Enhanced**: Visual Polish - Enhanced spacing and padding throughout the UI
+  - Added 2px padding between "Buffs" title and icon grid for better visual separation
+  - Improved timer positioning: moved from very top/bottom edges to more readable positions
+  - Normal buff timers positioned 8px from top edge
+  - Weapon enchant timers positioned 8px from bottom edge for better slot indicator separation
+- **Enhanced**: Buff Tracker System - Multi-layered cleanup system preventing memory leaks
+  - Immediate cleanup on buff removal for instant response
+  - Periodic maintenance cleanup every 30 seconds for stale entries
+  - Natural expiration cleanup for consistent state management
+  - Prevents stale timer display issues and improves memory efficiency
+- **Added**: Lock Frame Feature - Advanced frame locking with minimal UI options
+  - Hide background, title bar, and frame border for ultra-minimal appearance
+  - Prevent accidental dragging during gameplay
+  - Settings checkbox with immediate apply/reset functionality
+  - Perfect for users who want maximum screen real estate
 
 ### Version 1.0.3 - 2025-01-18
 **Smart Timer System & Duration Centralization**

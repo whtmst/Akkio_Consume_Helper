@@ -8,11 +8,12 @@
   - Updated icon spacing range to 30-64 pixels with clear label indication
   - Enhanced validation to ensure proper spacing values within acceptable range
 - **Settings UI Reorganization**: Complete overhaul of settings interface layout
-  - **Balanced Layout**: Reorganized from unbalanced right-heavy layout to balanced left/right sections
+  - **Streamlined Layout**: Reorganized from scattered right-side layout to clean left-column organization
   - **Layout Settings** (Left): Scale slider, update interval, icons per row, icon spacing
-  - **Display Settings** (Right): Tooltips, hover-to-show functionality
-  - **Combat Settings** (Left Bottom): Combat-specific options logically grouped
-  - Improved visual organization and user experience
+  - **Combat Settings** (Left): Combat-specific options logically grouped below layout settings
+  - **Display Settings** (Left): Tooltips, hover-to-show, lock frame features organized below combat settings
+  - **Future-Ready**: Right side now available for expansion of additional settings categories
+  - Improved visual organization and user experience with logical grouping flow
 - **Visual Polish**: Enhanced spacing and padding throughout the UI
   - Added 2px padding between "Buffs" title and icon grid for better visual separation
   - Improved timer positioning: moved from very top/bottom edges to more readable positions
