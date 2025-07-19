@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.0.6"
+local ADDON_VERSION = "1.0.7"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -2321,6 +2321,60 @@ local function OnInCombat()
   -- Stop the buff status UI updates during combat (if enabled)
   if Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat and buffStatusFrame and buffStatusFrame.ticker then
     buffStatusFrame.ticker:SetScript("OnUpdate", nil)
+    
+    -- BUT keep essential functionality working by creating a minimal timer
+    -- This handles hover-to-show AND timer display updates during combat pause
+    buffStatusFrame.ticker:SetScript("OnUpdate", function()
+      local now = GetTime()
+      
+      -- Handle hover-to-show timer during combat pause
+      if buffStatusFrame.hideTimer and now >= buffStatusFrame.hideTimer then
+        if Akkio_Consume_Helper_Settings.settings.hoverToShow then
+          -- Force hide if timer has expired, regardless of hoverCount state
+          buffStatusFrame.hoverCount = 0 -- Reset hover count
+          buffStatusFrame:SetAlpha(0.0) -- Hide the frame
+        end
+        buffStatusFrame.hideTimer = nil -- Clear the timer
+      end
+      
+      -- Update timer displays every second even during combat pause
+      -- This keeps consumable and weapon enchant timers visually accurate
+      if buffStatusFrame.children then
+        for i = 1, table.getn(buffStatusFrame.children) do
+          local icon = buffStatusFrame.children[i]
+          if icon and icon.buffdata and icon.timerLabel then
+            local data = icon.buffdata
+            
+            -- Update consumable timer displays
+            if not data.isWeaponEnchant and data.duration then
+              local remainingTime = getBuffRemainingTime(data.name)
+              icon.timerLabel:SetText(formatTimeRemaining(remainingTime))
+            end
+            
+            -- Update weapon enchant timer displays
+            if data.isWeaponEnchant then
+              if data.slot == "mainhand" then
+                local hasMainHandEnchant, mainHandExpiration = GetWeaponEnchantInfo()
+                if hasMainHandEnchant and mainHandExpiration then
+                  local remainingSeconds = mainHandExpiration / 1000
+                  icon.timerLabel:SetText(formatTimeRemaining(remainingSeconds))
+                else
+                  icon.timerLabel:SetText("")
+                end
+              elseif data.slot == "offhand" then
+                local _, _, _, hasOffHandEnchant, offHandExpiration = GetWeaponEnchantInfo()
+                if hasOffHandEnchant and offHandExpiration then
+                  local remainingSeconds = offHandExpiration / 1000
+                  icon.timerLabel:SetText(formatTimeRemaining(remainingSeconds))
+                else
+                  icon.timerLabel:SetText("")
+                end
+              end
+            end
+          end
+        end
+      end
+    end)
   end
   
   -- Hide the buff status frame during combat (if enabled)
@@ -2337,8 +2391,35 @@ local function OnLeavingCombat()
   if Akkio_Consume_Helper_Settings.settings.pauseUpdatesInCombat and buffStatusFrame and buffStatusFrame.ticker then
     buffStatusFrame.ticker.lastUpdate = GetTime() -- Reset the timer
     buffStatusFrame.ticker.lastFullUpdate = GetTime() -- Reset full update timer too
+    buffStatusFrame.ticker.lastCleanup = GetTime() -- Reset cleanup timer too
     buffStatusFrame.ticker:SetScript("OnUpdate", function()
       local now = GetTime()
+      
+      -- CRITICAL: Include hover-to-show timer logic that was missing!
+      if buffStatusFrame.hideTimer and now >= buffStatusFrame.hideTimer then
+        if Akkio_Consume_Helper_Settings.settings.hoverToShow then
+          -- Force hide if timer has expired, regardless of hoverCount state
+          buffStatusFrame.hoverCount = 0 -- Reset hover count
+          buffStatusFrame:SetAlpha(0.0) -- Hide the frame
+        end
+        buffStatusFrame.hideTimer = nil -- Clear the timer
+      end
+      
+      -- Periodic cleanup of expired buff tracker entries (every 30 seconds)
+      if (now - buffStatusFrame.ticker.lastCleanup) > 30 then
+        if buffTracker and Akkio_Consume_Helper_Settings.buffTracker then
+          for buffName, tracker in pairs(buffTracker) do
+            local elapsedTime = now - tracker.startTime
+            if elapsedTime >= tracker.duration then
+              -- Remove expired entries
+              buffTracker[buffName] = nil
+              Akkio_Consume_Helper_Settings.buffTracker[buffName] = nil
+            end
+          end
+        end
+        buffStatusFrame.ticker.lastCleanup = now
+      end
+      
       if (now - buffStatusFrame.ticker.lastUpdate) > updateTimer then
         -- Only do a quick update of buff status, not full UI rebuild
         UpdateBuffStatusOnly()

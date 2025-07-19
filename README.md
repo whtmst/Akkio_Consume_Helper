@@ -157,7 +157,8 @@ If the frame gets stuck visible or hidden when using hover-to-show mode:
    - Look for "MISMATCH!" in the state analysis
    - Check if hide timer has expired but frame is still visible
 2. **Emergency Fix**: Use `/acthoverfix` to immediately reset the hover state
-3. **Auto-Recovery**: Latest version (1.0.6+) includes automatic recovery from timer expiry issues
+3. **Auto-Recovery**: Latest version (1.0.7+) includes automatic recovery from timer expiry issues
+4. **Combat Setting Check**: Ensure issue isn't caused by "Pause UI updates in combat" setting conflict (fixed in 1.0.7+)
 
 ### Frame Position Problems
 If the frame doesn't remember its position when locked:
@@ -197,6 +198,13 @@ For issues, suggestions, or contributions:
 - Feature requests welcome
 
 ## Changelog
+
+### Version 1.0.7 - 2025-07-19 (CRITICAL UPDATE #2)
+**Fixed Combat Pause Setting Conflicts**
+- **CRITICAL**: Fixed "Pause UI updates in combat" setting breaking hover-to-show functionality
+- **CRITICAL**: Fixed consumable and weapon enchant timer displays freezing during combat pause
+- **Root Cause Found**: Combat events were disabling the entire OnUpdate timer, breaking all timer logic
+- **Complete Solution**: Hover-to-show and timer displays now work independently of combat pause settings
 
 ### Version 1.0.6 - 2025-07-19 (CRITICAL UPDATE)
 **Emergency Fix for Hover-to-Show Timer Issues**

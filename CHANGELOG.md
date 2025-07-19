@@ -1,5 +1,33 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.0.7] - 2025-07-19
+
+### Fixed - CRITICAL
+- **Combat Pause Setting Conflict**: Fixed critical issue where "Pause UI updates in combat" setting completely broke hover-to-show functionality
+  - **Root Cause**: When `pauseUpdatesInCombat` was enabled, entering combat would completely disable the OnUpdate timer with `SetScript("OnUpdate", nil)`
+  - **Missing Timer Logic**: The restored OnUpdate handler after combat was missing the crucial hover-to-show hide timer logic
+  - **Complete Fix**: Hover-to-show timer now continues running even when combat updates are paused
+  - **Proper Restoration**: Post-combat OnUpdate handler now includes all necessary timer logic (hide timer, cleanup, etc.)
+- **Timer Display Freeze During Combat**: Fixed critical issue where consumable and weapon enchant timer displays would freeze during combat when "Pause UI updates in combat" was enabled
+  - **Root Cause**: Combat pause was completely disabling OnUpdate timer, stopping all timer display updates
+  - **Timer Continuation**: Timer displays for consumables and weapon enchants now continue updating during combat pause
+  - **Visual Accuracy**: Players can now see accurate countdown timers even during combat when updates are paused
+  - **Complete Functionality**: Hover-to-show, timer displays, and essential updates all work during combat pause
+- **Enhanced Combat Pause Logic**: Improved combat pause to maintain essential visual updates while still reducing performance load
+  - **Selective Updates**: Only intensive operations (buff scanning, icon color changes) are paused during combat
+  - **Essential Timers**: Timer display updates continue for accurate visual feedback
+  - **Performance Balance**: Maintains combat performance benefits while preserving user experience
+- **Combat State Management**: Enhanced combat event handlers to preserve hover-to-show functionality
+  - **Minimal Combat Timer**: During combat pause, a lightweight timer handles hover-to-show hide logic and timer display updates
+  - **Full Restoration**: After combat, complete OnUpdate handler is restored with all features intact
+
+### Technical
+- **Timer Separation**: Separated critical hover-to-show timer from general buff update logic
+- **State Preservation**: Hover functionality now immune to combat setting changes
+- **Timer Accuracy**: Consumable and weapon enchant timers remain visually accurate during combat
+- **Performance Optimization**: Selective pausing reduces load while maintaining critical functionality
+- **Comprehensive Testing**: Verified fix works with all combinations of combat and hover settings
+
 ## [1.0.6] - 2025-07-19
 
 ### Fixed - CRITICAL
