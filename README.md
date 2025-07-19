@@ -154,8 +154,10 @@ The addon features an intelligent dual timer system:
 If the frame gets stuck visible or hidden when using hover-to-show mode:
 
 1. **Diagnose the Issue**: Run `/actdebug` to see detailed hover state information
+   - Look for "MISMATCH!" in the state analysis
+   - Check if hide timer has expired but frame is still visible
 2. **Emergency Fix**: Use `/acthoverfix` to immediately reset the hover state
-3. **Check Output**: The debug command will show if hover count and frame alpha are mismatched
+3. **Auto-Recovery**: Latest version (1.0.6+) includes automatic recovery from timer expiry issues
 
 ### Frame Position Problems
 If the frame doesn't remember its position when locked:
@@ -195,6 +197,12 @@ For issues, suggestions, or contributions:
 - Feature requests welcome
 
 ## Changelog
+
+### Version 1.0.6 - 2025-07-19 (CRITICAL UPDATE)
+**Emergency Fix for Hover-to-Show Timer Issues**
+- **CRITICAL**: Fixed frame getting stuck visible when hover timer expires
+- **Enhanced**: Improved debug detection for expired timer situations  
+- **Recovery**: Automatic frame recovery from timer/state mismatches
 
 ### Version 1.0.5 - 2025-07-19
 **Frame Position Persistence & Hover-to-Show Stability**

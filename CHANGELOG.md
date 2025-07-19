@@ -1,5 +1,20 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.0.6] - 2025-07-19
+
+### Fixed - CRITICAL
+- **Hover-to-Show Timer Logic**: Fixed critical issue where frames could get stuck visible even after hover timer expired
+  - **Force Hide on Timer Expiry**: OnUpdate handler now immediately hides frame when hide timer expires, regardless of hover count state
+  - **State Corruption Prevention**: Eliminates race conditions that could cause frame to remain visible with expired timers
+  - **Automatic Recovery**: Frame now properly recovers from timer/state mismatches without manual intervention
+- **Enhanced Debug Detection**: Improved `/actdebug` command to specifically detect expired timer situations
+  - **Timer Expiry Detection**: Shows how long ago hide timer expired when frame is stuck visible
+  - **Better Error Reporting**: More precise identification of the specific type of hover-to-show malfunction
+
+### Technical
+- **Robust Timer Handling**: Simplified hide timer logic to prevent state mismatch scenarios
+- **Emergency Recovery**: Enhanced `/acthoverfix` command provides reliable recovery from any hover-related stuck state
+
 ## [1.0.5] - 2025-07-19
 
 ### Enhanced

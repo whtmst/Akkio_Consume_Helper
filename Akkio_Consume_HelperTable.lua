@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.0.5"
+local ADDON_VERSION = "1.0.6"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -1952,11 +1952,10 @@ BuildBuffStatusUI = function()
       -- Check for delayed hide timer (for hover-to-show functionality)
       if buffStatusFrame.hideTimer and now >= buffStatusFrame.hideTimer then
         if Akkio_Consume_Helper_Settings.settings.hoverToShow then
-          -- Double-check hoverCount before hiding
-          if not buffStatusFrame.hoverCount or buffStatusFrame.hoverCount <= 0 then
-            buffStatusFrame.hoverCount = 0 -- Ensure it's exactly 0
-            buffStatusFrame:SetAlpha(0.0) -- Hide the frame
-          end
+          -- Force hide if timer has expired, regardless of hoverCount state
+          -- This prevents the frame from getting stuck visible
+          buffStatusFrame.hoverCount = 0 -- Reset hover count
+          buffStatusFrame:SetAlpha(0.0) -- Hide the frame
         end
         buffStatusFrame.hideTimer = nil -- Clear the timer
       end
@@ -2238,6 +2237,11 @@ SlashCmdList["AKKIODEBUG"] = function()
         DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6B=== ISSUE DETECTED ===|r")
         if currentAlpha > 0 and (not hoverCount or hoverCount <= 0) then
           DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BFrame stuck visible!|r Hover count suggests it should be hidden.")
+          -- Check for expired timer specifically
+          if hideTimer and currentTime >= hideTimer then
+            local expiredTime = currentTime - hideTimer
+            DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BHide timer expired " .. string.format("%.2f", expiredTime) .. "s ago but frame is still visible!|r")
+          end
           DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Suggestion:|r Try /acthoverfix to reset hover state")
         elseif currentAlpha == 0 and hoverCount and hoverCount > 0 then
           DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BFrame stuck hidden!|r Hover count suggests it should be visible.")
@@ -2284,6 +2288,10 @@ SlashCmdList["AKKIOHOVERFIX"] = function()
   
   -- Force frame to hidden state (since hoverCount is 0)
   buffStatusFrame:SetAlpha(0.0)
+  
+  -- Additional check for stuck timer issue
+  local now = GetTime()
+  DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Current time: " .. string.format("%.2f", now) .. "|r")
   
   DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio Consume Helper:|r Hover state reset successfully!")
   DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Frame should now be hidden. Hover over buff icons to make it visible.|r")
