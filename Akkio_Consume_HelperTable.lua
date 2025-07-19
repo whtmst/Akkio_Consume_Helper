@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.0.4"
+local ADDON_VERSION = "1.0.5"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -38,7 +38,15 @@ local function ResetToDefaults()
       hideFrameInCombat = false,
       minimapAngle = 225,
       showTooltips = true,
-      hoverToShow = false
+      hoverToShow = false,
+      lockFrame = false,
+      framePosition = {
+        point = "CENTER",
+        relativeTo = "UIParent", 
+        relativePoint = "CENTER",
+        xOffset = 0,
+        yOffset = 32
+      }
     }
   }
   
@@ -98,6 +106,18 @@ local function MigrateSettings()
     --   -- Migration logic for 1.0.0 -> 1.1.0
     -- end
     
+    -- Migration for framePosition setting (added in 1.0.4)
+    if savedVersion ~= "0.0.0" and not Akkio_Consume_Helper_Settings.settings.framePosition then
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Akkio Consume Helper:|r Adding frame position persistence feature")
+      Akkio_Consume_Helper_Settings.settings.framePosition = {
+        point = "CENTER",
+        relativeTo = "UIParent", 
+        relativePoint = "CENTER",
+        xOffset = 0,
+        yOffset = 32
+      }
+    end
+    
     -- Update version after successful migration
     Akkio_Consume_Helper_Settings.version = currentVersion
     DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Migration completed successfully!|r")
@@ -114,7 +134,15 @@ if not Akkio_Consume_Helper_Settings.settings then
     hideFrameInCombat = false,
     minimapAngle = 225,
     showTooltips = true,
-    hoverToShow = false
+    hoverToShow = false,
+    lockFrame = false,
+    framePosition = {
+      point = "CENTER",
+      relativeTo = "UIParent", 
+      relativePoint = "CENTER",
+      xOffset = 0,
+      yOffset = 32
+    }
   }
 end
 
@@ -148,6 +176,19 @@ if Akkio_Consume_Helper_Settings.settings.hoverToShow == nil then
 end
 if not Akkio_Consume_Helper_Settings.settings.iconSpacing then
   Akkio_Consume_Helper_Settings.settings.iconSpacing = 32
+end
+if Akkio_Consume_Helper_Settings.settings.lockFrame == nil then
+  Akkio_Consume_Helper_Settings.settings.lockFrame = false
+end
+-- Frame position settings (default to CENTER)
+if not Akkio_Consume_Helper_Settings.settings.framePosition then
+  Akkio_Consume_Helper_Settings.settings.framePosition = {
+    point = "CENTER",
+    relativeTo = "UIParent", 
+    relativePoint = "CENTER",
+    xOffset = 0,
+    yOffset = 32
+  }
 end
 -- ============================================================================
 -- GLOBAL VARIABLES
@@ -1373,7 +1414,22 @@ BuildBuffStatusUI = function()
 
   if not buffStatusFrame then
     buffStatusFrame = CreateFrame("Frame", "BuffStatusFrame", UIParent)
-    buffStatusFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 32)
+    
+    -- Ensure framePosition exists, create default if missing
+    if not Akkio_Consume_Helper_Settings.settings.framePosition then
+      Akkio_Consume_Helper_Settings.settings.framePosition = {
+        point = "CENTER",
+        relativeTo = "UIParent", 
+        relativePoint = "CENTER",
+        xOffset = 0,
+        yOffset = 32
+      }
+    end
+    
+    -- Restore saved position or use default
+    local pos = Akkio_Consume_Helper_Settings.settings.framePosition
+    buffStatusFrame:SetPoint(pos.point, pos.relativeTo, pos.relativePoint, pos.xOffset, pos.yOffset)
+    
     -- Use saved scale setting or default to 1.0
     local scale = 1.0
     if Akkio_Consume_Helper_Settings.settings and Akkio_Consume_Helper_Settings.settings.scale then
@@ -1384,12 +1440,28 @@ BuildBuffStatusUI = function()
     buffStatusFrame:SetMovable(true)
     buffStatusFrame:RegisterForDrag("LeftButton")
     buffStatusFrame:SetScript("OnDragStart", function() buffStatusFrame:StartMoving() end)
-    buffStatusFrame:SetScript("OnDragStop", function() buffStatusFrame:StopMovingOrSizing() end)
+    buffStatusFrame:SetScript("OnDragStop", function() 
+      buffStatusFrame:StopMovingOrSizing()
+      -- Save the new position to persistent storage
+      local point, relativeTo, relativePoint, xOffset, yOffset = buffStatusFrame:GetPoint()
+      Akkio_Consume_Helper_Settings.settings.framePosition = {
+        point = point,
+        relativeTo = "UIParent", -- Always relative to UIParent for consistency
+        relativePoint = relativePoint,
+        xOffset = xOffset,
+        yOffset = yOffset
+      }
+    end)
 
     -- Add hover handlers to the frame itself for hover-to-show functionality
     buffStatusFrame:SetScript("OnEnter", function()
       if Akkio_Consume_Helper_Settings.settings.hoverToShow then
-        buffStatusFrame.hoverCount = (buffStatusFrame.hoverCount or 0) + 1
+        -- Initialize hoverCount if it doesn't exist
+        if not buffStatusFrame.hoverCount then
+          buffStatusFrame.hoverCount = 0
+        end
+        
+        buffStatusFrame.hoverCount = buffStatusFrame.hoverCount + 1
         -- Cancel any pending hide timer
         if buffStatusFrame.hideTimer then
           buffStatusFrame.hideTimer = nil
@@ -1400,8 +1472,15 @@ BuildBuffStatusUI = function()
     
     buffStatusFrame:SetScript("OnLeave", function()
       if Akkio_Consume_Helper_Settings.settings.hoverToShow then
-        buffStatusFrame.hoverCount = math.max(0, (buffStatusFrame.hoverCount or 1) - 1)
+        -- Initialize hoverCount if it doesn't exist
+        if not buffStatusFrame.hoverCount then
+          buffStatusFrame.hoverCount = 0
+        end
+        
+        buffStatusFrame.hoverCount = math.max(0, buffStatusFrame.hoverCount - 1)
         if buffStatusFrame.hoverCount <= 0 then
+          -- Ensure hoverCount doesn't go negative
+          buffStatusFrame.hoverCount = 0
           -- Set a timer to hide after a short delay
           buffStatusFrame.hideTimer = GetTime() + 0.1 -- Hide after 100ms
         end
@@ -1700,7 +1779,12 @@ BuildBuffStatusUI = function()
     icon:SetScript("OnEnter", function()
       -- Apply hover-to-show functionality first
       if Akkio_Consume_Helper_Settings.settings.hoverToShow then
-        buffStatusFrame.hoverCount = (buffStatusFrame.hoverCount or 0) + 1
+        -- Initialize hoverCount if it doesn't exist
+        if not buffStatusFrame.hoverCount then
+          buffStatusFrame.hoverCount = 0
+        end
+        
+        buffStatusFrame.hoverCount = buffStatusFrame.hoverCount + 1
         -- Cancel any pending hide timer
         if buffStatusFrame.hideTimer then
           buffStatusFrame.hideTimer = nil
@@ -1819,8 +1903,15 @@ BuildBuffStatusUI = function()
     icon:SetScript("OnLeave", function()
       -- Apply hover-to-show functionality first
       if Akkio_Consume_Helper_Settings.settings.hoverToShow then
-        buffStatusFrame.hoverCount = math.max(0, (buffStatusFrame.hoverCount or 1) - 1)
+        -- Initialize hoverCount if it doesn't exist
+        if not buffStatusFrame.hoverCount then
+          buffStatusFrame.hoverCount = 0
+        end
+        
+        buffStatusFrame.hoverCount = math.max(0, buffStatusFrame.hoverCount - 1)
         if buffStatusFrame.hoverCount <= 0 then
+          -- Ensure hoverCount doesn't go negative
+          buffStatusFrame.hoverCount = 0
           -- Don't hide immediately - set a timer to hide after a short delay
           -- This prevents flickering when moving between icons
           buffStatusFrame.hideTimer = GetTime() + 0.1 -- Hide after 100ms
@@ -1860,9 +1951,12 @@ BuildBuffStatusUI = function()
       
       -- Check for delayed hide timer (for hover-to-show functionality)
       if buffStatusFrame.hideTimer and now >= buffStatusFrame.hideTimer then
-        if Akkio_Consume_Helper_Settings.settings.hoverToShow and 
-           (not buffStatusFrame.hoverCount or buffStatusFrame.hoverCount <= 0) then
-          buffStatusFrame:SetAlpha(0.0) -- Hide the frame
+        if Akkio_Consume_Helper_Settings.settings.hoverToShow then
+          -- Double-check hoverCount before hiding
+          if not buffStatusFrame.hoverCount or buffStatusFrame.hoverCount <= 0 then
+            buffStatusFrame.hoverCount = 0 -- Ensure it's exactly 0
+            buffStatusFrame:SetAlpha(0.0) -- Hide the frame
+          end
         end
         buffStatusFrame.hideTimer = nil -- Clear the timer
       end
@@ -2095,6 +2189,66 @@ SlashCmdList["AKKIODEBUG"] = function()
     DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFFTotal tracked buffs: " .. trackerCount .. "|r")
   end
 
+  -- HOVER-TO-SHOW DEBUG INFORMATION
+  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFFFF=== HOVER-TO-SHOW DEBUG ===|r")
+  if buffStatusFrame then
+    local hoverEnabled = Akkio_Consume_Helper_Settings.settings.hoverToShow
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Hover-to-show enabled:|r " .. (hoverEnabled and "|cff00FF00YES|r" or "|cffFF6B6BNO|r"))
+    
+    if hoverEnabled then
+      local currentAlpha = buffStatusFrame:GetAlpha()
+      local hoverCount = buffStatusFrame.hoverCount or "nil"
+      local hideTimer = buffStatusFrame.hideTimer
+      local currentTime = GetTime()
+      
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Frame Alpha:|r " .. string.format("%.2f", currentAlpha))
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Hover Count:|r " .. tostring(hoverCount))
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Hide Timer:|r " .. (hideTimer and string.format("%.2f", hideTimer) or "nil"))
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Current Time:|r " .. string.format("%.2f", currentTime))
+      
+      if hideTimer then
+        local timeUntilHide = hideTimer - currentTime
+        DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Time until hide:|r " .. string.format("%.2f", timeUntilHide) .. "s")
+      end
+      
+      -- Check expected vs actual state
+      local expectedAlpha = (hoverCount and hoverCount > 0) and 1.0 or 0.0
+      local stateMatch = math.abs(currentAlpha - expectedAlpha) < 0.01
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Expected Alpha:|r " .. string.format("%.2f", expectedAlpha))
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00State Match:|r " .. (stateMatch and "|cff00FF00YES|r" or "|cffFF6B6BMISMATCH!|r"))
+      
+      -- Check if frame is actually shown/hidden
+      local frameShown = buffStatusFrame:IsShown()
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Frame IsShown:|r " .. (frameShown and "|cff00FF00YES|r" or "|cffFF6B6BNO|r"))
+      
+      -- Count child icons with hover handlers
+      local iconCount = 0
+      if buffStatusFrame.children then
+        for i = 1, table.getn(buffStatusFrame.children) do
+          local child = buffStatusFrame.children[i]
+          if child and child.buffdata then
+            iconCount = iconCount + 1
+          end
+        end
+      end
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Active Icons:|r " .. iconCount)
+      
+      -- Provide troubleshooting suggestions
+      if not stateMatch then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6B=== ISSUE DETECTED ===|r")
+        if currentAlpha > 0 and (not hoverCount or hoverCount <= 0) then
+          DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BFrame stuck visible!|r Hover count suggests it should be hidden.")
+          DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Suggestion:|r Try /acthoverfix to reset hover state")
+        elseif currentAlpha == 0 and hoverCount and hoverCount > 0 then
+          DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BFrame stuck hidden!|r Hover count suggests it should be visible.")
+          DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Suggestion:|r Try /acthoverfix to reset hover state")
+        end
+      end
+    end
+  else
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BNo buff status frame exists.|r")
+  end
+
   DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6=== END DEBUG SCAN ===|r")
 end
 
@@ -2108,6 +2262,31 @@ SlashCmdList["AKKIOCLEAR"] = function()
   if buffStatusFrame then
     ForceRefreshBuffStatus()
   end
+end
+
+SLASH_AKKIOHOVERFIX1 = "/acthoverfix"
+SlashCmdList["AKKIOHOVERFIX"] = function()
+  if not buffStatusFrame then
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BAkkio Consume Helper:|r No buff status frame exists.")
+    return
+  end
+  
+  if not Akkio_Consume_Helper_Settings.settings.hoverToShow then
+    DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BAkkio Consume Helper:|r Hover-to-show is not enabled.")
+    return
+  end
+  
+  DEFAULT_CHAT_FRAME:AddMessage("|cffFFFF00Akkio Consume Helper:|r Resetting hover-to-show state...")
+  
+  -- Reset all hover-related state
+  buffStatusFrame.hoverCount = 0
+  buffStatusFrame.hideTimer = nil
+  
+  -- Force frame to hidden state (since hoverCount is 0)
+  buffStatusFrame:SetAlpha(0.0)
+  
+  DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio Consume Helper:|r Hover state reset successfully!")
+  DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Frame should now be hidden. Hover over buff icons to make it visible.|r")
 end
 
 -- ============================================================================

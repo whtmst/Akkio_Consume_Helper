@@ -1,5 +1,38 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.0.5] - 2025-07-19
+
+### Enhanced
+- **Frame Position Persistence**: Lock frame now properly saves and restores position
+  - **Automatic Position Saving**: Frame position is automatically saved when dragging the frame
+  - **Position Restoration**: Saved position is restored when reloading UI or restarting the game
+  - **Lock Frame Enhancement**: When lock frame is enabled, the frame maintains its custom position
+  - **Smart Defaults**: New installations start with centered position, existing users keep their layout
+  - **Migration Support**: Existing users automatically receive the framePosition setting
+
+### Fixed
+- **Hover-to-Show Stability**: Comprehensive improvements to prevent frame getting stuck visible/hidden
+  - **Race Condition Prevention**: Improved OnEnter/OnLeave event handling to prevent hover count drift
+  - **State Validation**: Enhanced hide timer logic with double-checking before hiding frame
+  - **Boundary Protection**: Prevents hover count from going negative or getting out of sync
+  - **Consistent Initialization**: Ensures hoverCount is always properly initialized
+
+### Added
+- **Advanced Debug Command**: Enhanced `/actdebug` with comprehensive hover-to-show diagnostics
+  - **State Analysis**: Shows current alpha, hover count, hide timer status, and frame visibility
+  - **Issue Detection**: Automatically detects when frame is stuck visible or hidden
+  - **Troubleshooting Guidance**: Provides specific suggestions when state mismatches are detected
+  - **Real-time Monitoring**: Displays expected vs actual frame states for debugging
+- **Emergency Fix Command**: New `/acthoverfix` command to reset stuck hover-to-show state
+  - **Instant Recovery**: Immediately resets hover count and hide timers
+  - **Safe Reset**: Forces frame to proper hidden state when hover count is 0
+  - **User-Friendly**: Clear instructions and feedback on what the command does
+
+### Technical
+- **Robust Event Handling**: Improved OnEnter/OnLeave handlers with proper state management
+- **Safety Checks**: Added multiple validation layers to prevent hover state corruption
+- **Enhanced Logging**: Better debug output for troubleshooting hover-to-show issues
+
 ## [1.0.4] - 2025-01-18
 
 ### Enhanced
@@ -14,6 +47,11 @@
   - **Display Settings** (Left): Tooltips, hover-to-show, lock frame features organized below combat settings
   - **Future-Ready**: Right side now available for expansion of additional settings categories
   - Improved visual organization and user experience with logical grouping flow
+- **Frame Position Persistence**: Lock frame now properly saves and restores position
+  - **Automatic Position Saving**: Frame position is automatically saved when dragging the frame
+  - **Position Restoration**: Saved position is restored when reloading UI or restarting the game
+  - **Lock Frame Enhancement**: When lock frame is enabled, the frame maintains its custom position
+  - **Smart Defaults**: New installations start with centered position, existing users keep their layout
 - **Visual Polish**: Enhanced spacing and padding throughout the UI
   - Added 2px padding between "Buffs" title and icon grid for better visual separation
   - Improved timer positioning: moved from very top/bottom edges to more readable positions

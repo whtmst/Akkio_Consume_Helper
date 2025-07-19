@@ -5,7 +5,19 @@
 ## Features
 
 🎯 **Smart Buff Tracking**
-- Visual tracking of buffs, debuffs, and consumables
+- Visual tracki### Version 1.0.4 - 2025-01-18
+**Enhanced UI Organization & Frame Position Persistence**
+- **Enhanced**: Icon Spacing Configuration (30-64 pixel range, border-to-border placement)
+- **Enhanced**: Settings UI Reorganization (streamlined left-column layout with logical grouping)
+- **Added**: Frame Position Persistence - lock frame now properly saves and restores position
+  - **Automatic Position Saving**: Frame position automatically saved when dragging the frame
+  - **Position Restoration**: Saved position restored when reloading UI or restarting game
+  - **Lock Frame Enhancement**: When lock frame enabled, frame maintains custom position
+- **Enhanced**: Visual Polish (improved timer positioning, padding enhancements)
+- **Enhanced**: Buff Tracker System (multi-layered cleanup for memory management)
+- **Fixed**: Buff Timer Display bug where timers wouldn't show after reapplying expired buffs
+
+### Version 1.0.3 - 2025-01-17g of buffs, debuffs, and consumables
 - Color-coded status indicators (icon color = active, red = missing)
 - Real-time item count display from your bags
 - Configurable icons per row layout (1-10 icons)
@@ -95,7 +107,12 @@ The settings interface is organized into logical sections for easy navigation:
 **Display Settings**
 - **Show Tooltips**: Enable/disable detailed tooltips on buff icons
 - **Hover to Show**: Make frame visible only when hovering over it
+  - **Stability**: Enhanced with robust state management to prevent getting stuck
+  - **Debug Support**: Use `/actdebug` to diagnose hover issues, `/acthoverfix` for emergency reset
 - **Lock Frame**: Hide background and prevent dragging for minimal UI
+  - **Position Persistence**: Frame position is automatically saved when dragging
+  - **Lock Preservation**: When locked, frame remembers and restores its custom position
+  - **Reload Safety**: Position persists through UI reloads and game restarts
 
 ## Usage
 
@@ -131,6 +148,30 @@ The addon features an intelligent dual timer system:
 - **API Integration**: Weapon enchants use `GetWeaponEnchantInfo()` for real-time precision
 - **Unified Display**: Both systems use the same time formatting for consistency
 
+## Troubleshooting
+
+### Hover-to-Show Issues
+If the frame gets stuck visible or hidden when using hover-to-show mode:
+
+1. **Diagnose the Issue**: Run `/actdebug` to see detailed hover state information
+2. **Emergency Fix**: Use `/acthoverfix` to immediately reset the hover state
+3. **Check Output**: The debug command will show if hover count and frame alpha are mismatched
+
+### Frame Position Problems
+If the frame doesn't remember its position when locked:
+
+1. **Verify Setting**: Ensure "Lock Frame" is enabled in Display Settings
+2. **Reload Test**: Try `/reload` to test if position is saved properly
+3. **Reset Position**: Unlock frame, move to desired position, then lock again
+
+### General Commands
+- `/act` - Open buff selection interface
+- `/actsettings` - Open settings panel  
+- `/actdebug` - Comprehensive diagnostic information
+- `/acthoverfix` - Reset hover-to-show state
+- `/actclear` - Clear buff tracker data
+- `/actreset` - Reset all settings to defaults
+
 ### Timer Features
 - **Real-time Updates**: Timers refresh every second for accurate countdown
 - **Smart Filtering**: Only relevant buffs show timer information in tooltips
@@ -154,6 +195,25 @@ For issues, suggestions, or contributions:
 - Feature requests welcome
 
 ## Changelog
+
+### Version 1.0.5 - 2025-07-19
+**Frame Position Persistence & Hover-to-Show Stability**
+- **Enhanced**: Frame Position Persistence - Lock frame now properly saves and restores position
+  - **Automatic Position Saving**: Frame position automatically saved when dragging the frame
+  - **Position Restoration**: Saved position restored when reloading UI or restarting game
+  - **Lock Frame Enhancement**: When lock frame enabled, frame maintains custom position
+  - **Smart Defaults**: New installations start centered, existing users get migration support
+- **Fixed**: Hover-to-Show Stability - Comprehensive improvements to prevent frame getting stuck
+  - **Race Condition Prevention**: Improved OnEnter/OnLeave event handling prevents hover count drift
+  - **State Validation**: Enhanced hide timer logic with double-checking before hiding frame
+  - **Boundary Protection**: Prevents hover count from going negative or getting out of sync
+- **Added**: Advanced Debug Command - Enhanced `/actdebug` with hover-to-show diagnostics
+  - **State Analysis**: Shows current alpha, hover count, hide timer status, and frame visibility
+  - **Issue Detection**: Automatically detects when frame is stuck visible or hidden
+  - **Troubleshooting Guidance**: Provides specific suggestions when state mismatches detected
+- **Added**: Emergency Fix Command - New `/acthoverfix` command to reset stuck hover-to-show state
+  - **Instant Recovery**: Immediately resets hover count and hide timers
+  - **Safe Reset**: Forces frame to proper hidden state when hover count is 0
 
 ### Version 1.0.4 - 2025-01-18
 **Enhanced UI Layout & Configuration**
