@@ -1,28 +1,43 @@
 # Akkio's Consume Helper
 
-**Version 1.0.4** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
+**Version 1.1.0** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
 
-## Features
+## 🎉 NEW IN VERSION 1.1.0 - MAJOR UPDATE
+
+### � **Smart Shopping List System**
+- **Intelligent Shopping Assistant**: New shopping list module accessible via `/actshopping` or `/actshop`
+- **Smart Item Detection**: Only shows enabled buffs that are below your configured thresholds
+- **Priority-Based Organization**: Items sorted by importance (Flasks → Elixirs → Weapon Enchants → Food → Other)
+- **Configurable Thresholds**: Set different minimum amounts for different consumable types
+- **Stock Status Monitoring**: Clear "need X more" messaging and "✓ All consumables well stocked!" confirmation
+
+### 🎯 **Tooltip System**
+- **Rich WoW-Style Tooltips**: Complete overhaul providing professional game-quality information display
+- **Three-Tier Tooltip System**: 
+  1. Bag scanning for items in inventory (most accurate)
+  2. Rich item/spell tooltips using database IDs (works without items in inventory)
+  3. Enhanced custom tooltips with detailed descriptions
+- **Complete Item Database**: Added item IDs for all 37+ consumables (flasks, elixirs, food, weapon enchants)
+- **Class Buff Intelligence**: Added spell IDs for all 9 class buffs with detailed spell information
+- **Rich Information Display**: Shows vendor prices, item descriptions, requirements, mana costs, and spell effects
+
+## Core Features
 
 🎯 **Smart Buff Tracking**
-- Visual tracki### Version 1.0.4 - 2025-01-18
-**Enhanced UI Organization & Frame Position Persistence**
-- **Enhanced**: Icon Spacing Configuration (30-64 pixel range, border-to-border placement)
-- **Enhanced**: Settings UI Reorganization (streamlined left-column layout with logical grouping)
-- **Added**: Frame Position Persistence - lock frame now properly saves and restores position
-  - **Automatic Position Saving**: Frame position automatically saved when dragging the frame
-  - **Position Restoration**: Saved position restored when reloading UI or restarting game
-  - **Lock Frame Enhancement**: When lock frame enabled, frame maintains custom position
-- **Enhanced**: Visual Polish (improved timer positioning, padding enhancements)
-- **Enhanced**: Buff Tracker System (multi-layered cleanup for memory management)
-- **Fixed**: Buff Timer Display bug where timers wouldn't show after reapplying expired buffs
-
-### Version 1.0.3 - 2025-01-17g of buffs, debuffs, and consumables
+- Visual tracking of buffs, debuffs, and consumables
 - Color-coded status indicators (icon color = active, red = missing)
 - Real-time item count display from your bags
 - Configurable icons per row layout (1-10 icons)
+- **Tooltips**: Rich WoW-style tooltips with complete item and spell information
 - **Flexible Icon Spacing**: Adjustable from 30-64 pixels (30px = border-to-border placement)
 - Automatic countdown timers for consumables with duration tracking
+
+🛒 **Smart Shopping List** ⭐ NEW
+- **Intelligent Consumable Shopping**: Track missing consumables for efficient shopping trips
+- **Command**: `/actshop` - Opens shopping list window with all missing items
+- **Real-time Updates**: Automatically refreshes based on your current buff status and bag contents
+- **Comprehensive Coverage**: Shows ALL consumables you're tracking but don't have in bags
+- **Professional Interface**: Consistent styling with main addon windows
 
 ⚔️ **Weapon Enchant Support**
 - Track weapon enchants for main hand and off hand separately
@@ -72,6 +87,7 @@
 
 - `/act` - Open buff selection window
 - `/actsettings` - Open settings panel
+- `/actshop` - Open smart shopping list for missing consumables ⭐ NEW
 - `/actbuffstatus` - Force refresh buff status UI
 - `/actreset` - Open reset confirmation dialog
 
@@ -157,8 +173,8 @@ If the frame gets stuck visible or hidden when using hover-to-show mode:
    - Look for "MISMATCH!" in the state analysis
    - Check if hide timer has expired but frame is still visible
 2. **Emergency Fix**: Use `/acthoverfix` to immediately reset the hover state
-3. **Auto-Recovery**: Latest version (1.0.7+) includes automatic recovery from timer expiry issues
-4. **Combat Setting Check**: Ensure issue isn't caused by "Pause UI updates in combat" setting conflict (fixed in 1.0.7+)
+3. **Auto-Recovery**: Latest version (1.1.0+) includes automatic recovery from timer expiry issues
+4. **Combat Setting Check**: Ensure issue isn't caused by "Pause UI updates in combat" setting conflict (fixed in 1.1.0+)
 
 ### Frame Position Problems
 If the frame doesn't remember its position when locked:
@@ -169,7 +185,8 @@ If the frame doesn't remember its position when locked:
 
 ### General Commands
 - `/act` - Open buff selection interface
-- `/actsettings` - Open settings panel  
+- `/actsettings` - Open settings panel
+- `/actshop` - Open smart shopping list for missing consumables ⭐ NEW  
 - `/actdebug` - Comprehensive diagnostic information
 - `/acthoverfix` - Reset hover-to-show state
 - `/actclear` - Clear buff tracker data
@@ -189,6 +206,15 @@ Optimized for smooth gameplay:
 - **Combat Modes**: Reduced activity during encounters
 - **Memory Efficient**: Minimal impact on game performance
 
+## Upcoming Features
+
+🚀 **Planned for Future Releases:**
+- **🏪 Auction House Integration**: Track and update bought consumables and reflect it directly in UI to keep better track
+- **📊 Consumable Analytics**: Track usage patterns and consumption statistics over time
+- **🔔 Low Stock Alerts**: Configurable warnings when consumables run low
+
+*Have ideas for new features? Join the discussion on Discord or submit suggestions via GitHub Issues!*
+
 ## Support
 
 For issues, suggestions, or contributions:
@@ -198,6 +224,27 @@ For issues, suggestions, or contributions:
 - Feature requests welcome
 
 ## Changelog
+
+### Version 1.1.0 - 2025-01-20 (MAJOR UPDATE)
+**Smart Shopping List & Enhanced Tooltip System**
+- **NEW**: Smart Shopping List Module - Complete shopping assistant for missing consumables
+  - **Command**: `/actshop` - Opens dedicated shopping list window
+  - **Intelligent Tracking**: Shows all consumables you're tracking but don't have in bags
+  - **Real-time Updates**: Automatically refreshes based on buff status and inventory
+  - **Interface**: Consistent styling with main addon windows
+  - **Smart Integration**: Seamlessly works with existing buff tracking system
+- **Enhanced**:Tooltip System - Complete overhaul with three-tier enhancement
+  - **WoW-Style Tooltips**: Rich, detailed tooltips with complete spell and item information
+  - **Spell Integration**: Added comprehensive spell IDs for all class buffs
+  - **Cross-Addon Compatibility**: Resolved conflicts with AtlasLoot and other tooltip addons
+  - **Enhanced Information Display**: Shows detailed spell descriptions, reagents, and casting information
+  - **Fallback System**: Custom tooltip system ensures information always displays correctly
+- **Technical Improvements**: Enhanced data architecture and API compatibility
+  - **Spell Database**: Complete spell ID integration (Power Word: Fortitude: 1243, Divine Spirit: 14752, etc.)
+  - **Compatibility Fixes**: Resolved "unknown link type" errors with AtlasLoot addon
+  - **Code Quality**: Enhanced error handling and cross-addon compatibility
+- **UI Consistency**: Shopping list close button matches main settings window behavior
+  - **Consistent Experience**: All windows now use identical close button implementation
 
 ### Version 1.0.7 - 2025-07-19 (CRITICAL UPDATE #2)
 **Fixed Combat Pause Setting Conflicts**

@@ -1,5 +1,57 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.1.0] - 2025-07-20 - MAJOR UPDATE
+
+### New Features - ENHANCED TOOLTIPS
+- **Rich Tooltip System**: Complete overhaul of tooltip functionality for professional WoW-style information display
+  - **Three-Tier Tooltip System**: 
+    1. Bag scanning for items in inventory (most accurate)
+    2. Rich item/spell tooltips using IDs (works without items in inventory)
+    3. Enhanced custom tooltips with detailed descriptions as fallback
+  - **Item ID Integration**: Added comprehensive item IDs for all consumables (flasks, elixirs, food, weapon enchants)
+  - **Spell ID Integration**: Added spell IDs for all class buffs (Power Word: Fortitude, Divine Spirit, Arcane Intellect, Mark of the Wild, all Paladin blessings)
+  - **Rich Item Tooltips**: Shows vendor prices, item descriptions, requirements, stats, and full WoW item information
+  - **Enhanced Class Buff Tooltips**: Detailed spell descriptions with mana costs, cast times, duration, and spell effects
+  - **Weapon Enchant Rich Tooltips**: Full item information plus weapon slot context ("Weapon enchant for: Main Hand/Off Hand")
+
+### New Features - SHOPPING LIST
+- **Smart Shopping List Module**: Comprehensive consumable tracking system accessible via `/actshopping` or `/actshop`
+  - **Intelligent Item Detection**: Only shows enabled buffs that are below configurable thresholds
+  - **Category-Based Organization**: Items sorted by priority (Flasks → Elixirs → Weapon Enchants → Food → Other)
+  - **Configurable Thresholds**: Different minimum amounts for different consumable types:
+    - Flasks: Default 2 minimum
+    - Elixirs: Default 5 minimum  
+    - Food: Default 10 minimum
+    - Weapon Enchants: Default 3 minimum
+    - Other: Default 5 minimum
+  - **Charge-Aware Detection**: Correctly counts charged items (oils, stones) vs stacked items
+  - **Weapon Enchant Intelligence**: Properly tracks mainhand vs offhand enchants separately
+  - **Visual Indicators**: Color-coded categories and clear "need X more" messaging
+  - **Stock Status Display**: Shows "✓ All consumables well stocked!" when everything is sufficient
+
+### Technical Improvements
+- **WowHead Research Integration**: Used WowHead Classic database to source accurate item and spell IDs
+- **Classic WoW Compatibility**: All tooltip functions use Classic WoW compatible API calls
+- **Modular Architecture**: Shopping list implemented as separate module for clean code organization
+- **Enhanced Data Structure**: All consumables now include both itemID and comprehensive metadata
+- **Cross-Addon Compatibility**: Fixed tooltip conflicts with other addons (AtlasLoot, etc.)
+
+### Enhanced User Experience
+- **Professional Tooltips**: Users now see complete WoW-style tooltips with rich information even without items in inventory
+- **Effortless Shopping**: No more guessing what consumables you need - the shopping list tells you exactly what's low
+- **Smart Categorization**: Shopping list prioritizes important items (flasks) over common items (food)
+- **Seamless Integration**: Shopping list uses same item detection logic as main addon for consistency
+
+### Bug Fixes
+- **Shopping List Close Button**: Fixed close button conflicts with other addons by using consistent implementation pattern
+- **Tooltip Error Resolution**: Resolved "unknown link type" errors when hovering over icons
+- **Cross-Addon Compatibility**: Eliminated tooltip conflicts that could affect other addons like AtlasLoot
+
+### Data Enhancements
+- **Complete Item ID Database**: Added item IDs for all 37+ consumables in the addon
+- **Comprehensive Spell Database**: Added spell IDs for all 9 class buffs
+- **Accurate Classic Data**: All IDs verified against WowHead Classic database for authenticity
+
 ## [1.0.7] - 2025-07-19
 
 ### Fixed - CRITICAL

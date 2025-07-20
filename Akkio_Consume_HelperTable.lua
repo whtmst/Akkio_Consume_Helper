@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.0.7"
+local ADDON_VERSION = "1.1.0"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -1012,6 +1012,32 @@ BuildSettingsUI = function()
     DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio Consume Helper:|r Settings reset to defaults successfully!")
   end)
 
+  -- Shopping List Button
+  local shoppingListButton = CreateFrame("Button", nil, settingsFrame, "UIPanelButtonTemplate")
+  shoppingListButton:SetWidth(120)
+  shoppingListButton:SetHeight(25)
+  shoppingListButton:SetPoint("BOTTOM", settingsFrame, "BOTTOM", 0, 20)
+  shoppingListButton:SetText("Shopping List")
+  shoppingListButton:SetScript("OnClick", function()
+    if Akkio_Consume_Helper_Shopping and Akkio_Consume_Helper_Shopping.BuildUI then
+      Akkio_Consume_Helper_Shopping.BuildUI()
+    else
+      DEFAULT_CHAT_FRAME:AddMessage("|cffFF6B6BAkkio Consume Helper:|r Shopping list module not loaded. Try /actshopping")
+    end
+  end)
+  
+  -- Tooltip for shopping list button
+  shoppingListButton:SetScript("OnEnter", function()
+    GameTooltip:SetOwner(shoppingListButton, "ANCHOR_TOP")
+    GameTooltip:AddLine("Shopping List", 1, 1, 1, 1)
+    GameTooltip:AddLine("View consumables running low", 0.7, 0.7, 0.7, 1)
+    GameTooltip:AddLine("Configure thresholds and alerts", 0.5, 0.5, 0.5, 1)
+    GameTooltip:Show()
+  end)
+  shoppingListButton:SetScript("OnLeave", function()
+    GameTooltip:Hide()
+  end)
+
   -- Close Button
   local closeButton = CreateFrame("Button", nil, settingsFrame, "UIPanelButtonTemplate")
   closeButton:SetWidth(80)
@@ -1284,6 +1310,122 @@ BuildBuffSelectionUI = function()
       icon:SetHeight(20)
       icon:SetPoint("LEFT", cb, "RIGHT", 5, 0)
       icon:SetTexture(buff.icon)
+
+      -- Create invisible frame over the icon for tooltip functionality
+      local iconFrame = CreateFrame("Frame", nil, content)
+      iconFrame:SetWidth(20)
+      iconFrame:SetHeight(20)
+      iconFrame:SetPoint("LEFT", cb, "RIGHT", 5, 0)
+      iconFrame:EnableMouse(true)
+      
+      -- Store buff data for tooltip
+      local buffData = buff
+      
+      -- Add tooltip on hover
+      iconFrame:SetScript("OnEnter", function()
+        GameTooltip:SetOwner(iconFrame, "ANCHOR_RIGHT")
+        
+        local tooltipShown = false
+        
+        -- Method 1: Try to find the item in bags first (most reliable) - only for non-weapon enchants
+        if not buffData.isWeaponEnchant then
+          for bag = 0, 4 do
+            for slot = 1, GetContainerNumSlots(bag) do
+              local itemLink = GetContainerItemLink(bag, slot)
+              if itemLink then
+                local _, _, linkItemName = string.find(itemLink, "%[(.-)%]")
+                if linkItemName then
+                  linkItemName = string.gsub(linkItemName, " %(%d+%)$", "")
+                  if linkItemName == buffData.name then
+                    GameTooltip:SetBagItem(bag, slot)
+                    tooltipShown = true
+                    break
+                  end
+                end
+              end
+            end
+            if tooltipShown then break end
+          end
+        end
+        
+        -- Method 2: If item not found in bags and we have an itemID, use it
+        if not tooltipShown and buffData.itemID then
+          -- SetHyperlink works with item IDs even if item not in inventory
+          GameTooltip:SetHyperlink("item:" .. buffData.itemID)
+          
+          -- For weapon enchants, add additional slot information
+          if buffData.isWeaponEnchant then
+            local slotText = buffData.slot == "mainhand" and "Main Hand" or "Off Hand"
+            GameTooltip:AddLine("Weapon enchant for: " .. slotText, 0.7, 0.7, 0.7, 1)
+          end
+          
+          tooltipShown = true
+        end
+        
+        -- Method 3: For spells (class buffs) or items without IDs, show enhanced custom tooltip
+        if not tooltipShown then
+          GameTooltip:AddLine(buffData.name, 1, 1, 1, 1)
+          
+          -- Add descriptions for class buffs
+          if buffData.spellID then
+            if buffData.spellID == 1243 then -- Power Word: Fortitude
+              GameTooltip:AddLine("Increases Stamina by 3 for 30 min.", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("60 Mana - Instant cast", 0.7, 0.7, 0.7, 1)
+            elseif buffData.spellID == 14752 then -- Divine Spirit
+              GameTooltip:AddLine("Increases Spirit by 17 for 30 min.", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("285 Mana - Instant cast", 0.7, 0.7, 0.7, 1)
+            elseif buffData.spellID == 1459 then -- Arcane Intellect
+              GameTooltip:AddLine("Increases Intellect by 2 for 30 min.", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("60 Mana - Instant cast", 0.7, 0.7, 0.7, 1)
+            elseif buffData.spellID == 1126 then -- Mark of the Wild
+              GameTooltip:AddLine("Increases armor by 25 for 30 min.", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("20 Mana - Instant cast", 0.7, 0.7, 0.7, 1)
+            elseif buffData.spellID == 1038 then -- Blessing of Salvation
+              GameTooltip:AddLine("Reduces threat generated by 30% for 5 min.", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("8% of base mana - Instant cast", 0.7, 0.7, 0.7, 1)
+            elseif buffData.spellID == 19740 then -- Blessing of Might
+              GameTooltip:AddLine("Increases melee attack power by 20 for 5 min.", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("20 Mana - Instant cast", 0.7, 0.7, 0.7, 1)
+            elseif buffData.spellID == 19742 then -- Blessing of Wisdom
+              GameTooltip:AddLine("Restores 10 mana every 5 seconds for 5 min.", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("30 Mana - Instant cast", 0.7, 0.7, 0.7, 1)
+            elseif buffData.spellID == 20217 then -- Blessing of Kings
+              GameTooltip:AddLine("Increases total stats by 10% for 5 min.", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("8% of base mana - Instant cast", 0.7, 0.7, 0.7, 1)
+            elseif buffData.spellID == 19977 then -- Blessing of Light
+              GameTooltip:AddLine("Increases effects of Holy Light by up to 210", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("and Flash of Light by up to 60 for 5 min.", 1, 0.82, 0, 1)
+              GameTooltip:AddLine("85 Mana - Instant cast", 0.7, 0.7, 0.7, 1)
+            end
+          end
+          
+          if buffData.isWeaponEnchant then
+            local slotText = buffData.slot == "mainhand" and "Main Hand" or "Off Hand"
+            GameTooltip:AddLine("Weapon enchant for: " .. slotText, 0.7, 0.7, 0.7, 1)
+          end
+          
+          if buffData.duration then
+            local minutes = math.floor(buffData.duration / 60)
+            GameTooltip:AddLine("Duration: " .. minutes .. " minutes", 0.7, 0.7, 0.7, 1)
+          end
+          if buffData.raidBuffName and buffData.raidBuffName ~= buffData.name then
+            GameTooltip:AddLine("Raid buff: " .. buffData.raidBuffName, 0.5, 0.8, 1, 1)
+          end
+          -- Add more detailed info if available
+          if buffData.description then
+            GameTooltip:AddLine(buffData.description, 0.8, 0.8, 0.8, 1)
+          end
+          if buffData.reagents then
+            GameTooltip:AddLine("Reagents: " .. buffData.reagents, 0.6, 0.9, 0.6, 1)
+          end
+        end
+        
+        GameTooltip:Show()
+      end)
+      
+      iconFrame:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+      end)
 
       local tempIcon = content:CreateTexture(nil, "ARTWORK")
       tempIcon:SetPoint("LEFT", icon, "RIGHT", 5, 0)
@@ -2307,6 +2449,7 @@ local function OnAddonLoaded()
   
   DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio's Consume Helper|r |cffFFFF00v" .. ADDON_VERSION .. "|r loaded successfully!")
   DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Type|r |cffFFFF00/act|r |cffADD8E6to configure buffs|r")
+  DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Type|r |cffFFFF00/actshopping|r |cffADD8E6to view shopping list|r")
   if not buffStatusFrame then
     -- No need to set rebuild flag here since frame doesn't exist yet
     BuildBuffStatusUI()
@@ -2469,6 +2612,11 @@ saveFrame:SetScript("OnEvent", function()
     -- Reinitialize buffTracker reference after addon loads
     initializeBuffTracker()
     buffTracker = Akkio_Consume_Helper_Settings.buffTracker
+    
+    -- Initialize shopping list module if available
+    if Akkio_Consume_Helper_Shopping and Akkio_Consume_Helper_Shopping.Initialize then
+      Akkio_Consume_Helper_Shopping.Initialize()
+    end
   elseif event == "PLAYER_LOGOUT" then
     -- Force save buff tracker data on logout
     if buffTracker then
