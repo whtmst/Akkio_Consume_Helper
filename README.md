@@ -1,8 +1,15 @@
 # Akkio's Consume Helper
 
-**Version 1.1.0** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
+**Version 1.1.1** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
 
-## 🎉 NEW IN VERSION 1.1.0 - MAJOR UPDATE
+## 🎉 NEW IN VERSION 1.1.1 - BUG FIX UPDATE
+
+### 🔧 **UI Interaction Fix**
+- **Fixed Keyboard Input Capture**: Resolved issue where addon frames prevented other UI elements (auction house, etc.) from receiving keystrokes
+- **Improved Compatibility**: Removed problematic frame-level keyboard capture while preserving text input functionality
+- **Better User Experience**: Addon frames no longer interfere with global keyboard input to other game interface elements
+
+## 🎉 MAJOR FEATURES FROM VERSION 1.1.0
 
 ### � **Smart Shopping List System**
 - **Intelligent Shopping Assistant**: New shopping list module accessible via `/actshopping` or `/actshop`
@@ -224,6 +231,13 @@ For issues, suggestions, or contributions:
 - Feature requests welcome
 
 ## Changelog
+
+### Version 1.1.1 - 2025-07-22 (BUG FIX UPDATE)
+**UI Interaction Compatibility Fix**
+- **Fixed**: Keyboard input capture issue that prevented other UI elements (auction house, etc.) from receiving keystrokes when addon frames were open
+- **Technical**: Removed problematic frame-level EnableKeyboard(true) calls from settings frame, reset confirmation frame, and shopping list frame
+- **Preserved**: Essential keyboard input functionality for EditBox text fields (threshold editing)
+- **Improved**: Addon frames no longer interfere with global keyboard input to other game interface elements
 
 ### Version 1.1.0 - 2025-01-20 (MAJOR UPDATE)
 **Smart Shopping List & Enhanced Tooltip System**

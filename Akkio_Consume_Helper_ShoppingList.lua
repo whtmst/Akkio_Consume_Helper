@@ -415,13 +415,6 @@ local function BuildShoppingListUI()
   shoppingListFrame:SetBackdropColor(0.05, 0.15, 0.1, 0.95) -- Dark green theme
   shoppingListFrame:SetBackdropBorderColor(0.5, 0.8, 0.5, 1) -- Light green border
   
-  -- Make the frame closable with Escape key
-  shoppingListFrame:SetScript("OnKeyDown", function(self, key)
-    if key == "ESCAPE" then
-      shoppingListFrame:Hide()
-    end
-  end)
-  shoppingListFrame:EnableKeyboard(true)
   shoppingListFrame:Hide() -- Hidden by default
 
   -- Title

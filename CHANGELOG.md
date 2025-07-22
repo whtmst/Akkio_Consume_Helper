@@ -1,5 +1,13 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.1.1] - 2025-07-22 - BUG FIX UPDATE
+
+### Bug Fixes
+- **UI Interaction Fix**: Fixed keyboard input capture issue that prevented other UI elements (auction house, etc.) from receiving keystrokes when addon frames were open
+  - Removed problematic frame-level EnableKeyboard(true) calls from settings frame, reset confirmation frame, and shopping list frame
+  - Preserved necessary keyboard input for EditBox text fields (threshold editing)
+  - Addon frames no longer interfere with global keyboard input to other game interface elements
+
 ## [1.1.0] - 2025-07-20 - MAJOR UPDATE
 
 ### New Features - ENHANCED TOOLTIPS

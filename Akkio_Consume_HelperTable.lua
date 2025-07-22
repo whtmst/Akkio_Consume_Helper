@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.1.0"
+local ADDON_VERSION = "1.1.1"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -646,13 +646,6 @@ BuildSettingsUI = function()
   settingsFrame:SetBackdropColor(0.1, 0.1, 0.2, 0.95) -- Set background color to dark blue-gray with high opacity
   settingsFrame:SetBackdropBorderColor(0.8, 0.8, 1, 1) -- Set border color to light blue
   
-  -- Make the frame closable with Escape key
-  settingsFrame:SetScript("OnKeyDown", function()
-    if arg1 == "ESCAPE" then
-      settingsFrame:Hide()
-    end
-  end)
-  settingsFrame:EnableKeyboard(true)
   settingsFrame:Hide() -- Ensure frame is hidden when first created
 
   -- Title
@@ -1090,7 +1083,6 @@ BuildResetConfirmationUI = function()
       resetConfirmFrame:Hide()
     end
   end)
-  resetConfirmFrame:EnableKeyboard(true)
 
   -- Title
   local title = resetConfirmFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
