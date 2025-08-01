@@ -1,15 +1,20 @@
 # Akkio's Consume Helper
 
-**Version 1.1.1** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
+**Version 1.1.2** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
 
-## 🎉 NEW IN VERSION 1.1.1 - BUG FIX UPDATE
+## 🎉 NEW IN VERSION 1.1.2 - TIMER DRIFT FIX
 
-### 🔧 **UI Interaction Fix**
+### 🔧 **Timer Accuracy Fix**
+- **Fixed Timer Drift**: Resolved critical issue where buff timers could show incorrect remaining time (e.g., showing "35 minutes remaining" when actual buff had only "19 minutes left")
+- **Dual Detection System**: Comprehensive timer drift protection with both active and passive detection mechanisms
+- **Automatic Correction**: Timers automatically reset to accurate time when drift is detected, requiring no user action
+- **Background Operation**: Timer corrections happen seamlessly during normal addon operation
+
+## 🎉 PREVIOUS UPDATES
+
+### Version 1.1.1 - UI Interaction Fix
 - **Fixed Keyboard Input Capture**: Resolved issue where addon frames prevented other UI elements (auction house, etc.) from receiving keystrokes
-- **Improved Compatibility**: Removed problematic frame-level keyboard capture while preserving text input functionality
-- **Better User Experience**: Addon frames no longer interfere with global keyboard input to other game interface elements
-
-## 🎉 MAJOR FEATURES FROM VERSION 1.1.0
+- **Improved Compatibility**: Better interaction with other addons and game UI elements
 
 ### � **Smart Shopping List System**
 - **Intelligent Shopping Assistant**: New shopping list module accessible via `/actshopping` or `/actshop`

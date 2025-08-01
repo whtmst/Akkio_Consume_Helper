@@ -1,5 +1,22 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.1.2] - 2025-08-01 - TIMER DRIFT FIX
+
+### Bug Fixes
+- **Timer Drift Detection**: Fixed critical timer accuracy issue where buff timers could show incorrect remaining time
+  - **Dual Detection System**: Comprehensive timer drift protection with both active and passive detection
+  - **Active Drift Detection**: When buffs are reapplied/refreshed, detects if timer has drifted beyond 60-second threshold and resets timestamp
+  - **Passive Drift Detection**: During regular UI updates, detects phantom timers showing significant negative time and auto-clears them
+  - **Automatic Correction**: Timers automatically reset to accurate time when drift is detected
+  - **Problem Resolution**: Fixes cases where addon showed "35 minutes remaining" when actual buff had only "19 minutes left"
+  - **No User Action Required**: Timer corrections happen automatically in background during normal addon operation
+
+### Technical Details
+- Enhanced `updateBuffTracker()` function with drift detection when buffs are actively detected
+- Enhanced `getBuffRemainingTime()` function with phantom timer cleanup for passive drift detection
+- 60-second tolerance threshold prevents false positives while catching significant drift issues
+- Automatic tracker cleanup prevents accumulation of invalid timer data
+
 ## [1.1.1] - 2025-07-22 - BUG FIX UPDATE
 
 ### Bug Fixes

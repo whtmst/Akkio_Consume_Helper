@@ -4,7 +4,7 @@
 -- VERSION & MIGRATION SYSTEM
 -- ============================================================================
 
-local ADDON_VERSION = "1.1.1"
+local ADDON_VERSION = "1.1.2"
 
 -- ============================================================================
 -- INITIALIZATION & SETTINGS
@@ -246,8 +246,6 @@ local function updateBuffTracker(buffName, buffTexture)
     buffTracker = Akkio_Consume_Helper_Settings.buffTracker
   end
   
-  -- If buff is currently active (this function is only called when buff is detected),
-  -- we should NOT restart the timer even if elapsed time seems high
   if not buffTracker[buffName] then
     -- Brand new buff - start tracking
     buffTracker[buffName] = {
@@ -264,10 +262,21 @@ local function updateBuffTracker(buffName, buffTexture)
     local tracker = buffTracker[buffName]
     local elapsedTime = now - tracker.startTime
     
-    -- Since the buff is currently active, just update duration and last seen
-    buffTracker[buffName].duration = duration
-    buffTracker[buffName].lastSeen = now
-    buffTracker[buffName].icon = buffTexture
+    -- Timer drift detection: if elapsed time significantly exceeds expected duration,
+    -- the buff was likely reapplied/refreshed - reset the timer
+    local driftThreshold = 60 -- 60 seconds tolerance
+    if elapsedTime > (tracker.duration + driftThreshold) then
+      -- Timer drift detected - reset startTime to current time
+      buffTracker[buffName].startTime = now
+      buffTracker[buffName].duration = duration
+      buffTracker[buffName].lastSeen = now
+      buffTracker[buffName].icon = buffTexture
+    else
+      -- Normal update - just refresh duration and last seen time
+      buffTracker[buffName].duration = duration
+      buffTracker[buffName].lastSeen = now
+      buffTracker[buffName].icon = buffTexture
+    end
     
     -- Explicitly save changes
     Akkio_Consume_Helper_Settings.buffTracker[buffName] = buffTracker[buffName]
@@ -293,6 +302,19 @@ local function getBuffRemainingTime(buffName)
   local now = GetTime()
   local elapsedTime = now - tracker.startTime
   local remainingTime = tracker.duration - elapsedTime
+  
+  -- Drift detection: if the timer shows negative time (elapsed > duration),
+  -- this indicates timer drift even without buff reapplication
+  local driftThreshold = 60 -- 60 seconds tolerance for natural expiration
+  if remainingTime < -driftThreshold then
+    -- Significant negative time detected - timer has drifted
+    -- Clear the tracker since the buff should have expired long ago
+    buffTracker[buffName] = nil
+    if Akkio_Consume_Helper_Settings.buffTracker then
+      Akkio_Consume_Helper_Settings.buffTracker[buffName] = nil
+    end
+    return 0
+  end
   
   return math.max(0, remainingTime)
 end
