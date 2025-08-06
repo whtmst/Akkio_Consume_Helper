@@ -3,6 +3,13 @@
 ## [1.1.3] - 2025-08-06 - TURTLE WOW CONSUMABLES EXPANSION
 
 ### Major Content Addition
+- **First-Time User Welcome Window**: Professional onboarding experience for new users
+  - **Interactive Tutorial**: Welcome window appears automatically on first addon use
+  - **Quick Settings Access**: One-click button to open main settings panel
+  - **Feature Overview**: Comprehensive introduction to addon capabilities and key features
+  - **User Choice**: "Don't show again" checkbox for returning users
+  - **Manual Access**: New `/actwelcome` command to view welcome window anytime
+  - **Streamlined Design**: Clean, focused interface that guides users to the main settings hub
 - **Turtle WoW Custom Consumables**: Massive expansion with 20+ new Turtle WoW-specific consumables
   - **Enhanced Database**: Added comprehensive Turtle WoW consumables from official Turtle WoW wiki
   - **Complete Integration**: All new consumables properly categorized and integrated into existing addon structure

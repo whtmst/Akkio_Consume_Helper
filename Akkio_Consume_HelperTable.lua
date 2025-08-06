@@ -1062,6 +1062,9 @@ BuildSettingsUI = function()
   closeButton:SetScript("OnClick", function()
     settingsFrame:Hide()
   end)
+  
+  -- Show the settings frame after it's fully created
+  settingsFrame:Show()
 end
 
 -- ============================================================================
@@ -1594,6 +1597,7 @@ BuildBuffStatusUI = function()
     buffStatusFrame:SetScale(scale)
     buffStatusFrame:EnableMouse(true)
     buffStatusFrame:SetMovable(true)
+    buffStatusFrame:SetClampedToScreen(true)
     buffStatusFrame:RegisterForDrag("LeftButton")
     buffStatusFrame:SetScript("OnDragStart", function() buffStatusFrame:StartMoving() end)
     buffStatusFrame:SetScript("OnDragStop", function() 
@@ -2280,6 +2284,12 @@ SlashCmdList["AKKIOBUFFSTATUS"] = function()
   BuildBuffStatusUI()
 end
 
+SLASH_AKKIOWELCOME1 = "/actwelcome"
+SlashCmdList["AKKIOWELCOME"] = function()
+  local welcomeFrame = CreateWelcomeWindow()
+  welcomeFrame:Show()
+end
+
 SLASH_AKKIORESET1 = "/actreset"
 SlashCmdList["AKKIORESET"] = function()
   if not resetConfirmFrame then
@@ -2457,9 +2467,115 @@ end
 -- INITIALIZATION
 -- ============================================================================
 
+-- Create welcome window for first-time users
+CreateWelcomeWindow = function()
+  local welcome = CreateFrame("Frame", "AkkioWelcomeFrame", UIParent)
+  welcome:SetWidth(600)
+  welcome:SetHeight(400)
+  welcome:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+  welcome:SetBackdrop({
+    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+    tile = true, tileSize = 32, edgeSize = 32,
+    insets = { left = 11, right = 12, top = 12, bottom = 11 }
+  })
+  welcome:SetFrameStrata("DIALOG")
+  welcome:SetFrameLevel(200)
+  welcome:SetMovable(true)
+  welcome:SetClampedToScreen(true)
+  welcome:EnableMouse(true)
+  welcome:RegisterForDrag("LeftButton")
+  welcome:SetScript("OnDragStart", function() welcome:StartMoving() end)
+  welcome:SetScript("OnDragStop", function() welcome:StopMovingOrSizing() end)
+  
+  -- Title
+  local title = welcome:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  title:SetPoint("TOP", welcome, "TOP", 0, -20)
+  title:SetText("|cff00FF00Welcome to Akkio's Consume Helper!|r")
+  
+  -- Version info
+  local version = welcome:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  version:SetPoint("TOP", title, "BOTTOM", 0, -10)
+  version:SetText("|cffFFFF00Version " .. ADDON_VERSION .. "|r")
+  
+  -- Welcome message
+  local message = welcome:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  message:SetPoint("TOP", version, "BOTTOM", 0, -20)
+  message:SetWidth(450)
+  message:SetJustifyH("LEFT")
+  message:SetText("|cffADD8E6Thank you for installing Akkio's Consume Helper!\n\n" ..
+    "This addon helps you track your consumable buffs and manage your shopping list. " ..
+    "Click the button below to open settings and get started:|r")
+  
+  -- Single settings button (centered)
+  local settingsButton = CreateFrame("Button", nil, welcome, "UIPanelButtonTemplate")
+  settingsButton:SetWidth(200)
+  settingsButton:SetHeight(40)
+  settingsButton:SetPoint("TOP", welcome, "TOP", 0, -180)
+  settingsButton:SetText("Open Settings")
+  settingsButton:SetScript("OnClick", function()
+    BuildSettingsUI()
+    welcome:Hide()
+  end)
+  
+  -- Button description
+  local settingsDesc = welcome:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  settingsDesc:SetPoint("TOP", settingsButton, "BOTTOM", 0, -10)
+  settingsDesc:SetText("|cffCCCCCCFrom settings you can configure buffs, view shopping list, and customize the addon|r")
+  
+  -- Features list
+  local features = welcome:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  features:SetPoint("TOP", welcome, "TOP", 0, -240)
+  features:SetWidth(450)
+  features:SetJustifyH("LEFT")
+  features:SetText("|cffFFD700Key Features:|r\n" ..
+    "• Track consumable buff timers with visual indicators\n" ..
+    "• Automatic shopping list generation\n" ..
+    "• Minimap button for easy access\n" ..
+    "• Hover-to-show and combat pause options\n")
+  
+  -- Close button
+  local closeButton = CreateFrame("Button", nil, welcome, "UIPanelButtonTemplate")
+  closeButton:SetWidth(100)
+  closeButton:SetHeight(25)
+  closeButton:SetPoint("BOTTOM", welcome, "BOTTOM", 0, 20)
+  closeButton:SetText("Close")
+  closeButton:SetScript("OnClick", function()
+    welcome:Hide()
+    -- Mark that user has seen welcome window
+    Akkio_Consume_Helper_Settings.hasSeenWelcome = true
+  end)
+  
+  -- Don't show again checkbox
+  local checkbox = CreateFrame("CheckButton", "AkkioWelcomeCheckbox", welcome, "UICheckButtonTemplate")
+  checkbox:SetPoint("BOTTOMLEFT", welcome, "BOTTOMLEFT", 20, 25)
+  checkbox:SetWidth(20)
+  checkbox:SetHeight(20)
+  
+  local checkboxText = welcome:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  checkboxText:SetPoint("LEFT", checkbox, "RIGHT", 5, 0)
+  checkboxText:SetText("Don't show this again")
+  
+  checkbox:SetScript("OnClick", function()
+    if checkbox:GetChecked() then
+      Akkio_Consume_Helper_Settings.hasSeenWelcome = true
+    else
+      Akkio_Consume_Helper_Settings.hasSeenWelcome = false
+    end
+  end)
+  
+  return welcome
+end
+
 local function OnAddonLoaded()
   -- Run migration first to ensure settings are compatible
   MigrateSettings()
+  
+  -- Show welcome window for first-time users
+  if not Akkio_Consume_Helper_Settings.hasSeenWelcome then
+    local welcomeFrame = CreateWelcomeWindow()
+    welcomeFrame:Show()
+  end
   
   DEFAULT_CHAT_FRAME:AddMessage("|cff00FF00Akkio's Consume Helper|r |cffFFFF00v" .. ADDON_VERSION .. "|r loaded successfully!")
   DEFAULT_CHAT_FRAME:AddMessage("|cffADD8E6Type|r |cffFFFF00/act|r |cffADD8E6to configure buffs|r")

@@ -4,6 +4,12 @@
 
 ## 🎉 NEW IN VERSION 1.1.3 - TURTLE WOW CONSUMABLES EXPANSION
 
+### 🌟 **First-Time User Experience**
+- **Welcome Window**: Interactive tutorial for new users
+- **Quick Settings Access**: One-click button to open main settings panel where all features are accessible
+- **User-Friendly Design**: Comprehensive introduction to addon capabilities
+- **Optional Display**: "Don't show again" option with manual `/actwelcome` command access
+
 ### 🌟 **Massive Content Expansion**
 - **20+ New Turtle WoW Consumables**: Complete integration of Turtle WoW-specific consumables from official wiki
 - **Enhanced Organization**: Complete reorganization of all consumables into logical, easy-to-navigate categories
@@ -78,6 +84,12 @@
 
 ## Core Features
 
+🎯 **New User Experience** ⭐ NEW
+- **Welcome Window**: First-time user onboarding with interactive tutorial
+- **Quick Settings Access**: One-click button to open main settings panel
+- **Professional Onboarding**: Comprehensive feature overview and setup assistance
+- **User Control**: Optional display with manual access via `/actwelcome` command
+
 🎯 **Smart Buff Tracking**
 - Visual tracking of buffs, debuffs, and consumables
 - Color-coded status indicators (icon color = active, red = missing)
@@ -143,6 +155,7 @@
 - `/act` - Open buff selection window
 - `/actsettings` - Open settings panel
 - `/actshop` - Open smart shopping list for missing consumables ⭐ NEW
+- `/actwelcome` - Show welcome window with quick start guide ⭐ NEW
 - `/actbuffstatus` - Force refresh buff status UI
 - `/actreset` - Open reset confirmation dialog
 
