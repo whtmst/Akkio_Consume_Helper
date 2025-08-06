@@ -21,15 +21,15 @@
 - **Ground Scorpok Assay** - 1-hour agility enhancement
 - **R.O.I.D.S.** - 1-hour strength enhancement
 - **Cerebral Cortex Compound** - 1-hour intellect enhancement  
-- **Dreamtonic** - 20-minute spirit enhancement
+- **Dreamtonic** - 20-minute Spell power enhancement
 
 #### **Food & Drinks** (New Additions)
-- **Le Fishe Au Chocolat** - 15-minute stamina food
+- **Le Fishe Au Chocolat** - 15-minute 1% dodge and defense
 - **Sweet Mountain Berry** - 10-minute stamina food
-- **Danonzo's Tel'Abim Medley** - 15-minute stamina food
-- **Danonzo's Tel'Abim Surprise** - 15-minute stamina food
-- **Danonzo's Tel'Abim Delight** - 15-minute stamina food
-- **Gurubashi Gumbo** - 15-minute stamina food
+- **Danonzo's Tel'Abim Medley** - 15-minute haste food
+- **Danonzo's Tel'Abim Surprise** - 15-minute ranged attack power food
+- **Danonzo's Tel'Abim Delight** - 15-minute spellpower food
+- **Gurubashi Gumbo** - 15-minute Reduce damage taken 
 - **Dragonbreath Chili** - 10-minute fire proc effect
 
 #### **Alcoholic Beverages** ⭐ NEW CATEGORY
