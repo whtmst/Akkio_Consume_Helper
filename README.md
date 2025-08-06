@@ -1,14 +1,57 @@
 # Akkio's Consume Helper
 
-**Version 1.1.2** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
+**Version 1.1.3** - Advanced buff and consumable tracking addon for World of Warcraft turtle (1.12)
 
-## 🎉 NEW IN VERSION 1.1.2 - TIMER DRIFT FIX
+## 🎉 NEW IN VERSION 1.1.3 - TURTLE WOW CONSUMABLES EXPANSION
 
-### 🔧 **Timer Accuracy Fix**
-- **Fixed Timer Drift**: Resolved critical issue where buff timers could show incorrect remaining time (e.g., showing "35 minutes remaining" when actual buff had only "19 minutes left")
-- **Dual Detection System**: Comprehensive timer drift protection with both active and passive detection mechanisms
-- **Automatic Correction**: Timers automatically reset to accurate time when drift is detected, requiring no user action
-- **Background Operation**: Timer corrections happen seamlessly during normal addon operation
+### 🌟 **Massive Content Expansion**
+- **20+ New Turtle WoW Consumables**: Complete integration of Turtle WoW-specific consumables from official wiki
+- **Enhanced Organization**: Complete reorganization of all consumables into logical, easy-to-navigate categories
+- **New Categories Added**: Alcoholic Beverages and Combat Potions for better item organization
+- **Data Structure Optimization**: Cleaned up unnecessary fields and improved performance
+
+### 📋 **Complete New Consumables List**
+
+#### **Elixirs & Juju** (New Additions)
+- **Elixir of Frost Power** - 30-minute frost damage enhancement
+- **Elixir of Greater Intellect** - 20-minute intellect boost  
+- **Juju Flurry** - 20-second attack speed enhancement
+
+#### **Special Potions & Consumables** (New Additions)
+- **Ground Scorpok Assay** - 1-hour agility enhancement
+- **R.O.I.D.S.** - 1-hour strength enhancement
+- **Cerebral Cortex Compound** - 1-hour intellect enhancement  
+- **Dreamtonic** - 20-minute spirit enhancement
+
+#### **Food & Drinks** (New Additions)
+- **Le Fishe Au Chocolat** - 15-minute stamina food
+- **Sweet Mountain Berry** - 10-minute stamina food
+- **Danonzo's Tel'Abim Medley** - 15-minute stamina food
+- **Danonzo's Tel'Abim Surprise** - 15-minute stamina food
+- **Danonzo's Tel'Abim Delight** - 15-minute stamina food
+- **Gurubashi Gumbo** - 15-minute stamina food
+- **Dragonbreath Chili** - 10-minute fire proc effect
+
+#### **Alcoholic Beverages** ⭐ NEW CATEGORY
+- **Rumsey Rum Black Label** - 15-minute stamina beverage
+- **Medivh's Merlot** - 15-minute stamina beverage
+- **Medivh's Merlot Blue** - 15-minute spirit beverage
+
+#### **Weapon Enchants** (New Additions)
+- **Consecrated Sharpening Stone** - Enhanced sharpening stone for both weapon slots
+- **Blessed Wizard Oil** - Enhanced wizard oil for main hand
+- **Frost Oil** - Frost damage weapon enchant for both slots
+
+#### **Combat Potions** ⭐ NEW CATEGORY  
+- **Nordanaar Herbal Tea** - Instant health/mana restoration
+- **Potion of Quickness** - 30-second haste enhancement
+- **Mighty Rage Potion** - Instant rage boost
+
+### 🔧 **Enhanced Organization**
+- **Logical Categorization**: Items now properly grouped by type and function
+- **Optimized Data Structure**: Removed unnecessary buffIcon fields for instant-effect items
+- **Complete Item ID Integration**: All new consumables include proper shopping list compatibility
+- **Wiki-Verified Data**: All additions sourced and verified from official Turtle WoW wiki
 
 ## 🎉 PREVIOUS UPDATES
 
@@ -237,7 +280,17 @@ For issues, suggestions, or contributions:
 
 ## Changelog
 
-### Version 1.1.1 - 2025-07-22 (BUG FIX UPDATE)
+### Version 1.1.3 - 2025-08-06 (TURTLE WOW CONSUMABLES EXPANSION)
+**Massive Content Addition - 20+ New Turtle WoW Consumables**
+- **Enhanced Database**: Added comprehensive Turtle WoW consumables from official wiki
+- **New Categories**: Added "Alcoholic Beverages" and "Combat Potions" sections
+- **Complete Reorganization**: Restructured all consumables into logical categories
+- **Wiki-Sourced Data**: All new items verified against official Turtle WoW documentation
+- **Optimized Integration**: New consumables work seamlessly with shopping list and tooltips
+- **Technical**: Enhanced data structure with proper item IDs and duration values
+- **Organization**: Items properly categorized by type rather than arbitrary groupings
+
+### Version 1.1.2 - 2025-08-01 (TIMER DRIFT FIX)
 **UI Interaction Compatibility Fix**
 - **Fixed**: Keyboard input capture issue that prevented other UI elements (auction house, etc.) from receiving keystrokes when addon frames were open
 - **Technical**: Removed problematic frame-level EnableKeyboard(true) calls from settings frame, reset confirmation frame, and shopping list frame

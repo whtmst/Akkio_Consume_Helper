@@ -1,5 +1,76 @@
 # Changelog - Akkio's Consume Helper
 
+## [1.1.3] - 2025-08-06 - TURTLE WOW CONSUMABLES EXPANSION
+
+### Major Content Addition
+- **Turtle WoW Custom Consumables**: Massive expansion with 20+ new Turtle WoW-specific consumables
+  - **Enhanced Database**: Added comprehensive Turtle WoW consumables from official Turtle WoW wiki
+  - **Complete Integration**: All new consumables properly categorized and integrated into existing addon structure
+  - **Organized Categories**: Clean reorganization of all consumables into logical, easy-to-navigate sections
+
+### New Consumables Added
+
+#### **Elixirs & Juju**
+- **Elixir of Frost Power** (Item ID: 17708) - 30-minute frost damage enhancement
+- **Elixir of Greater Intellect** (Item ID: 9179) - 20-minute intellect boost
+- **Juju Flurry** (Item ID: 12450) - 20-second attack speed enhancement
+
+#### **Special Potions & Consumables**
+- **Ground Scorpok Assay** (Item ID: 8412) - 1-hour agility enhancement
+- **R.O.I.D.S.** (Item ID: 8410) - 1-hour strength enhancement  
+- **Cerebral Cortex Compound** (Item ID: 8423) - 1-hour intellect enhancement
+- **Dreamtonic** (Item ID: 61423) - 20-minute spirit enhancement
+
+#### **Food & Drinks**
+- **Le Fishe Au Chocolat** (Item ID: 84040) - 15-minute stamina food
+- **Sweet Mountain Berry** (Item ID: 51714) - 10-minute stamina food
+- **Danonzo's Tel'Abim Medley** (Item ID: 60978) - 15-minute stamina food
+- **Danonzo's Tel'Abim Surprise** (Item ID: 60976) - 15-minute stamina food
+- **Danonzo's Tel'Abim Delight** (Item ID: 60977) - 15-minute stamina food
+- **Gurubashi Gumbo** (Item ID: 53015) - 15-minute stamina food
+- **Dragonbreath Chili** (Item ID: 12217) - 10-minute fire proc effect
+
+#### **Alcoholic Beverages** (NEW CATEGORY)
+- **Rumsey Rum Black Label** (Item ID: 21151) - 15-minute stamina beverage
+- **Medivh's Merlot** (Item ID: 61174) - 15-minute stamina beverage
+- **Medivh's Merlot Blue** (Item ID: 61175) - 15-minute spirit beverage
+
+#### **Weapon Enchants**
+- **Consecrated Sharpening Stone** (Item ID: 23122) - Enhanced sharpening stone for both weapon slots
+- **Blessed Wizard Oil** (Item ID: 23123) - Enhanced wizard oil for main hand
+- **Frost Oil** (Item ID: 3829) - Frost damage weapon enchant for both slots
+
+#### **Combat Potions** (NEW CATEGORY)
+- **Nordanaar Herbal Tea** (Item ID: 61675) - Instant health/mana restoration (no buff tracking needed)
+- **Potion of Quickness** (Item ID: 61181) - 30-second haste enhancement
+- **Mighty Rage Potion** (Item ID: 13442) - Instant rage boost (no buff tracking needed)
+
+### Enhanced Organization
+- **Reorganized Consumable Categories**: Complete restructure for better user experience
+  - **Elixirs & Juju**: Now contains only actual elixirs and juju items
+  - **Special Potions & Consumables**: Separated unique potions that don't fit standard elixir categories
+  - **Alcoholic Beverages**: New dedicated section for alcohol-based consumables
+  - **Combat Potions**: New section for instant-effect and short-duration combat consumables
+- **Data Structure Optimization**: Cleaned up unnecessary buffIcon fields for instant-effect items
+- **Logical Categorization**: Items now properly grouped by type and function rather than arbitrary groupings
+
+### Technical Improvements
+- **Complete Item ID Integration**: All new consumables include proper item IDs for shopping list compatibility
+- **Buff Icon Optimization**: Removed unnecessary buff tracking for instant-effect consumables
+- **Duration Accuracy**: Proper duration values for all trackable buffs
+- **Icon Integration**: Custom icons for Turtle WoW-specific items where available
+
+### User Experience
+- **Better Navigation**: Improved category organization makes finding specific consumables easier
+- **Consistent Naming**: All items follow consistent naming conventions
+- **Enhanced Shopping List**: New consumables automatically integrate with existing shopping list functionality
+- **Tooltip Support**: Rich tooltips available for all new consumables
+
+### Data Integrity
+- **Wiki-Sourced Data**: All new consumables verified against official Turtle WoW wiki
+- **Accurate Metadata**: Correct item IDs, durations, and buff icons for all additions
+- **Testing Ready**: All items marked for in-game verification with clear testing comments
+
 ## [1.1.2] - 2025-08-01 - TIMER DRIFT FIX
 
 ### Bug Fixes

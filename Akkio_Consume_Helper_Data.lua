@@ -1,7 +1,7 @@
 -- Akkio's Consume Helper - Data Table
 -- This file contains all the buff definitions and their corresponding icons
-
 -- Global table to store all buff data
+
 Akkio_Consume_Helper_Data = {}
 
 Akkio_Consume_Helper_Data.allBuffs = {
@@ -28,15 +28,24 @@ Akkio_Consume_Helper_Data.allBuffs = {
   { name = "Elixir of Superior Defense", icon = "Interface\\Icons\\Inv_Potion_66",              buffIcon = "Interface\\Icons\\INV_Potion_86",                                                                                            canBeAnounced = false, duration = 3600, itemID = 13445 },
   { name = "Elixir of Shadow Power",     icon = "Interface\\Icons\\Inv_Potion_46",              buffIcon = "Interface\\Icons\\INV_Potion_46",                                                                                            canBeAnounced = false, duration = 3600, itemID = 9264 },
   { name = "Elixir of Greater Firepower",icon = "Interface\\Icons\\Inv_Potion_60",              buffIcon = "Interface\\Icons\\INV_Potion_60",                                                                                            canBeAnounced = false, duration = 3600, itemID = 21546 },
-  { name = "Mageblood Potion",           icon = "Interface\\Icons\\Inv_Potion_45",              buffIcon = "Interface\\Icons\\INV_Potion_45",                                                                                            canBeAnounced = false, duration = 3600, itemID = 20007 },
-  { name = "Gift of Arthas",             icon = "Interface\\Icons\\Inv_Potion_28",              buffIcon = "Interface\\Icons\\Spell_Shadow_FingerOfDeath",                                                                               canBeAnounced = false, duration = 1800, itemID = 9088 },
+  { name = "Elixir of Frost Power",      icon = "Interface\\Icons\\INV_Potion_115",             buffIcon = "Interface\\Icons\\INV_Potion_03",                                                                                            canBeAnounced = false, duration = 1800, itemID = 17708 },
+  { name = "Elixir of Greater Intellect",icon = "Interface\\Icons\\INV_Potion_124",             buffIcon = "Interface\\Icons\\INV_Potion_10",                                                                                            canBeAnounced = false, duration = 1200, itemID = 9179 },
   { name = "Greater Arcane Elixir",      icon = "Interface\\Icons\\Inv_Potion_25",              buffIcon = "Interface\\Icons\\INV_Potion_25",                                                                                            canBeAnounced = false, duration = 3600, itemID = 13454 },
   { name = "Juju Might",                 icon = "Interface\\Icons\\INV_Misc_MonsterScales_07",  buffIcon = "Interface\\Icons\\INV_Misc_MonsterScales_07",                                                                                canBeAnounced = false, duration = 1800, itemID = 12460 },
   { name = "Juju Power",                 icon = "Interface\\Icons\\INV_Misc_MonsterScales_11",  buffIcon = "Interface\\Icons\\INV_Misc_MonsterScales_11",                                                                                canBeAnounced = false, duration = 1800, itemID = 12451 },
+  { name = "Juju Flurry",                icon = "Interface\\Icons\\INV_Misc_MonsterScales_17",  buffIcon = "Interface\\Icons\\INV_Misc_MonsterScales_17",                                                                                canBeAnounced = false, duration = 20, itemID = 12450 },
+  { name = "Dreamshard Elixir",          icon = "Interface\\Icons\\INV_Potion_113",             buffIcon = "Interface\\Icons\\INV_Potion_25",                                                                                            canBeAnounced = false, duration = 3600, itemID = 61224 },
+  --figure out soloution to dreamshardelxir using same icon as greater arcane elixir.
+
+  { header = true,                       name = "Special Potions & Consumables" },
+  { name = "Mageblood Potion",           icon = "Interface\\Icons\\Inv_Potion_45",              buffIcon = "Interface\\Icons\\INV_Potion_45",                                                                                            canBeAnounced = false, duration = 3600, itemID = 20007 },
+  { name = "Gift of Arthas",             icon = "Interface\\Icons\\Inv_Potion_28",              buffIcon = "Interface\\Icons\\Spell_Shadow_FingerOfDeath",                                                                               canBeAnounced = false, duration = 1800, itemID = 9088 },
   { name = "Winterfall Firewater",       icon = "Interface\\Icons\\INV_Potion_92",              buffIcon = "Interface\\Icons\\INV_Potion_92",                                                                                            canBeAnounced = false, duration = 1200, itemID = 12820 },
   { name = "Spirit of Zanza",            icon = "Interface\\Icons\\INV_Potion_30",              buffIcon = "Interface\\Icons\\INV_Potion_30",                                                                                            canBeAnounced = false, duration = 7200, itemID = 20079 },
-  { name = "Dreamshard Elixir",          icon = "Interface\\Icons\\INV_Potion_113",             buffIcon = "Interface\\Icons\\INV_Potion_25",                                                                                            canBeAnounced = false, duration = 3600, itemID = 61224 },
-  --figure out soloution to dreamshard elxir using same icon as greater arcane elixir.
+  { name = "Ground Scorpok Assay",       icon = "Interface\\Icons\\INV_Misc_Dust_07",           buffIcon = "Interface\\Icons\\Spell_Nature_ForceOfNature",                                                                               canBeAnounced = false, duration = 3600, itemID = 8412 },
+  { name = "R.O.I.D.S.",                 icon = "Interface\\Icons\\INV_Stone_15",               buffIcon = "Interface\\Icons\\Spell_Nature_Strength",                                                                                    canBeAnounced = false, duration = 3600, itemID = 8410 },
+  { name = "Cerebral Cortex Compound",   icon = "Interface\\Icons\\INV_Potion_119",             buffIcon = "Interface\\Icons\\Spell_Nature_Purge",                                                                                       canBeAnounced = false, duration = 3600, itemID = 8423 },
+  { name = "Dreamtonic",                 icon = "Interface\\Icons\\INV_Potion_114",             buffIcon = "Interface\\Icons\\INV_Potion_30",                                                                                            canBeAnounced = false, duration = 1200, itemID = 61423 },
 
   { header = true,                       name = "Food & Drinks" },
   { name = "Smoked Desert Dumplings",    icon = "Interface\\Icons\\Inv_Misc_Food_64",           buffIcon = "Interface\\Icons\\Spell_Misc_Food",                                                                                          canBeAnounced = false, duration = 900, itemID = 20452 },
@@ -46,9 +55,16 @@ Akkio_Consume_Helper_Data.allBuffs = {
   { name = "Dirge's Kickin' Chimaerok Chops", icon = "Interface\\Icons\\Inv_Misc_Food_65",      buffIcon = "Interface\\Icons\\INV_Boots_Plate_03",                                                                                       canBeAnounced = false, duration = 900, itemID = 21023 },
   { name = "Hardened Mushroom",         icon = "Interface\\Icons\\INV_mushroom_15",             buffIcon = "Interface\\Icons\\INV_Boots_Plate_03",                                                                                       canBeAnounced = false, duration = 900, itemID = 51717 },
   { name = "Power Mushroom",            icon = "Interface\\Icons\\INV_mushroom_14",             buffIcon = "Interface\\Icons\\Spell_Misc_Food",                                                                                          canBeAnounced = false, duration = 900, itemID = 51720 },
-  
+  { name = "Le Fishe Au Chocolat",       icon = "Interface\\Icons\\INV_Misc_Fishe_Au_Chocolate",buffIcon = "Interface\\Icons\\Spell_Misc_Food",                                                                                          canBeAnounced = false, duration = 900, itemID = 84040 },
+  { name = "Sweet Mountain Berry",       icon = "Interface\\Icons\\INV_Misc_Food_40",           buffIcon = "Interface\\Icons\\INV_Boots_Plate_03",                                                                                       canBeAnounced = false, duration = 600, itemID = 51714 },
+  { name = "Danonzo's Tel'Abim Medley",  icon = "Interface\\Icons\\INV_Misc_Food_73",           buffIcon = "Interface\\Icons\\Spell_Misc_Food",                                                                                          canBeAnounced = false, duration = 900, itemID = 60978 },
+  { name = "Danonzo's Tel'Abim Surprise", icon = "Interface\\Icons\\inv_misc_food_92",          buffIcon = "Interface\\Icons\\Spell_Misc_Food",                                                                                          canBeAnounced = false, duration = 900, itemID = 60976 },
+  { name = "Danonzo's Tel'Abim Delight", icon = "Interface\\Icons\\INV_Drink_21",               buffIcon = "Interface\\Icons\\Spell_Misc_Food",                                                                                          canBeAnounced = false, duration = 900, itemID = 60977 },
+  { name = "Gurubashi Gumbo",            icon = "Interface\\Icons\\INV_Misc_Food_64",           buffIcon = "Interface\\Icons\\INV_Misc_Food_73",                                                                                         canBeAnounced = false, duration = 900, itemID = 53015 },
+  { name = "Dragonbreath Chili",         icon = "Interface\\Icons\\INV_Drink_23",               buffIcon = "Interface\\Icons\\Spell_Fire_Incinerate",                                                                                    anBeAnounced = false, duration = 600, itemID = 12217 },
 
-  { header = true,                       name = "Weapon Enchants" },
+
+  { header = true,                         name = "Weapon Enchants" },
   { name = "Dense Sharpening Stone",       icon = "Interface\\Icons\\INV_Stone_SharpeningStone_05", buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand", itemID = 12404 },
   { name = "Dense Sharpening Stone",       icon = "Interface\\Icons\\INV_Stone_SharpeningStone_05", buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand", itemID = 12404 },
   { name = "Elemental Sharpening Stone",   icon = "Interface\\Icons\\INV_Stone_02",                 buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand", itemID = 18262 },
@@ -63,9 +79,29 @@ Akkio_Consume_Helper_Data.allBuffs = {
   { name = "Deadly Poison",                icon = "Interface\\Icons\\Ability_Rogue_Dualweild",      buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand", itemID = 2892 },
   { name = "Instant Poison",               icon = "Interface\\Icons\\Ability_Poisons",              buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand", itemID = 6947 },
   { name = "Instant Poison",               icon = "Interface\\Icons\\Ability_Poisons",              buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand", itemID = 6947 },
+  { name = "Consecrated Sharpening Stone", icon = "Interface\\Icons\\INV_Stone_SharpeningStone_02", buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand", itemID = 23122 },
+  { name = "Consecrated Sharpening Stone", icon = "Interface\\Icons\\INV_Stone_SharpeningStone_02", buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand", itemID = 23122 },
+  { name = "Blessed Wizard Oil",          icon = "Interface\\Icons\\INV_Potion_138",                buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand", itemID = 23123 },
+  { name = "Frost Oil",                   icon = "Interface\\Icons\\INV_potion_130",                buffIcon = "weapon_enchant_mh", raidbuffIcon = "weapon_enchant_mh", canBeAnounced = false, isWeaponEnchant = true, slot = "mainhand", itemID = 3829 },
+  { name = "Frost Oil",                   icon = "Interface\\Icons\\INV_potion_130",                buffIcon = "weapon_enchant_oh", raidbuffIcon = "weapon_enchant_oh", canBeAnounced = false, isWeaponEnchant = true, slot = "offhand", itemID = 3829 },
+
+  { header = true,                       name = "Alcoholic Beverages" },
+  { name = "Rumsey Rum Black Label",     icon = "Interface\\Icons\\INV_Drink_04",               buffIcon = "Interface\\Icons\\INV_Drink_04",                                                                                             canBeAnounced = false, duration = 900, itemID = 21151 },
+  { name = "Medivh's Merlot",            icon = "Interface\\Icons\\INV_Drink_Waterskin_05",     buffIcon = "Interface\\Icons\\INV_Drink_04",                                                                                             canBeAnounced = false, duration = 900, itemID = 61174 },
+  { name = "Medivh's Merlot Blue",       icon = "Interface\\Icons\\INV_Drink_Waterskin_01",     buffIcon = "Interface\\Icons\\INV_Drink_19",                                                                                             canBeAnounced = false, duration = 900, itemID = 61175 },
+
+  { header = true,                       name = "Combat Potions" },
+  { name = "Nordanaar Herbal Tea",       icon = "Interface\\Icons\\inv_drink_waterskin_03",                                                                                                                                              canBeAnounced = false, duration = 0, itemID = 61675 }, -- Instant effect - no buff to track
+  { name = "Potion of Quickness",        icon = "Interface\\Icons\\INV_Potion_08",              buffIcon = "Interface\\Icons\\Spell_Nature_Invisibilty",                                                                                 canBeAnounced = false, duration = 30, itemID = 61181 },
+  { name = "Mighty Rage Potion",         icon = "Interface\\Icons\\INV_Potion_125",                                                                                                                                                      canBeAnounced = false, duration = 20, itemID = 13442 }, -- Instant effect - no buff to track
 }
 
--- You can add more data tables here if needed
+
+-- Cant find this buff in trutle wow database
+ --{ name = "Juice Striped Melon",        icon = "Interface\\Icons\\INV_Misc_Food_09",           buffIcon = "Interface\\Icons\\INV_Misc_Food_09",                                                                                         canBeAnounced = false, duration = 600, itemID = 51721 },
+
+
+ -- You can add more data tables here if needed
 -- For example:
 -- Akkio_Consume_Helper_Data.settings = {
 --   updateTimer = 1,
