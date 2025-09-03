@@ -15,7 +15,9 @@ Akkio_Consume_Helper_Data.allBuffs = {
   { name = "Blessing of Wisdom",                 icon = "Interface\\Icons\\Spell_Holy_SealOfWisdom",     buffIcon = "Interface\\Icons\\Spell_Holy_SealOfWisdom",        raidbuffIcon = "Interface\\Icons\\Spell_Holy_GreaterBlessingofWisdom",   canBeAnounced = true, spellID = 19742},
   { name = "Blessing of Kings",                  icon = "Interface\\Icons\\Spell_Magic_Magearmor",       buffIcon = "Interface\\Icons\\Spell_Magic_MageArmor",          raidbuffIcon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings",   canBeAnounced = true, spellID = 20217},
   { name = "Blessing of Light",                  icon = "Interface\\Icons\\Spell_Holy_PrayerOfHealing02",buffIcon = "Interface\\Icons\\Spell_Holy_PrayerOfHealing02",   raidbuffIcon = "Interface\\Icons\\Spell_Holy_GreaterBlessingofLight",    canBeAnounced = true, spellID = 19977},
-
+  { name = "Void Stone",                         icon = "Interface\\Icons\\inv_enchant_voidsphere",      buffIcon = "Interface\\Icons\\inv_enchant_voidsphere",         raidbuffIcon = "Interface\\Icons\\inv_enchant_voidsphere",               canBeAnounced = true, spellID = 52751},
+  --void stone added
+  
   { header = true,                               name = "Flasks" },
   { name = "Flask of the Titans",                icon = "Interface\\Icons\\INV_Potion_62",               buffIcon = "Interface\\Icons\\INV_Potion_62",                                                                                           canBeAnounced = false, duration = 7200, itemID = 13510 },
   { name = "Flask of Supreme Power",             icon = "Interface\\Icons\\INV_Potion_41",               buffIcon = "Interface\\Icons\\INV_Potion_41",                                                                                           canBeAnounced = false, duration = 7200, itemID = 13512 },
