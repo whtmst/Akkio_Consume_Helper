@@ -728,7 +728,7 @@ BuildSettingsUI = function()
     savedScale = Akkio_Consume_Helper_Settings.settings.scale
   end
   scaleSlider:SetValue(savedScale)
-  scaleSlider:SetValueStep(0.1)
+  scaleSlider:SetValueStep(0.05)
 
   -- Scale Value Display
   local scaleValueText = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
